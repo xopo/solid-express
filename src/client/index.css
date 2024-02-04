@@ -35,6 +35,13 @@ h1 {
   line-height: 1.1;
 }
 
+input {
+    border: 1px solid #bbbbbb3b;
+    border-radius: 5px;
+    font-size: 20px;
+    padding-left: 1em;
+}
+
 button {
   border-radius: 8px;
   border: 1px solid transparent;

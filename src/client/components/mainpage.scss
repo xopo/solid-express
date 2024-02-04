@@ -1,0 +1,104 @@
+.details {
+    display: grid;
+    grid-template-rows: 33px 43px 1fr 59px 324px;
+    height: 100vh;
+    width: 100vw;
+    margin: 1em;
+    justify-content: center;
+    max-height: 1000px;
+    &-participants {
+        list-style: none;
+        padding: unset;
+        margin: unset;
+        li {
+            position: relative;
+            &:not(.selected)::before {
+                content: '✔️';
+                font-size: 8px;
+                transform: translate(-5px, 6px);
+            }
+            &.selected::before {
+                margin-left: -20px;
+            }
+            &::before {
+                position: absolute;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                right: 30px;
+            }
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            button {
+                background-color: transparent;
+                outline: none;
+                border-color: transparent;
+                padding: 0;
+                height: 2em;
+                margin-top: 1em;
+            }
+        }
+    }
+    &-tables {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        .table {
+            background: green;
+            color: white;
+            border: 1px solid lime;
+            outline: 1px solid green;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            height: 76px;
+            width: 186px;
+            position: relative;
+            text-shadow: 0px 0px 5px #111;
+            font-weight: bolder;
+            &::after {
+                content: '';
+                height: 100%;
+                width: 2px;
+                background: #00ff0042;
+                position: absolute;
+            }
+            .who {
+                position: absolute;
+                bottom: 0;
+                left: 25px;
+            }
+        }
+    }
+    &-date {
+        display: flex;
+        align-items: center;
+        justify-content: space-around;
+        font-size: 20px;
+        font-weight: bold;
+        border-radius: 6px;
+        box-shadow: 1px 1px 10px #a0d0aa;
+        padding: 5px;
+        position: relative;
+        span {
+            position: absolute;
+            &:first-of-type {
+                left: 20px;
+            }
+            &:only-child, &:last-of-type {
+                right: 20px;
+                left: initial;
+            }
+        }
+    }
+    .selected {
+        &:not(.mine) {
+            pointer-events: none;
+        }
+        &::before {
+            content: '🏓';
+        }
+    }
+}
