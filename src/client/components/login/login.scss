@@ -5,8 +5,11 @@
     justify-content: center;
     width: 100vw;
     height: 300px;
+    max-width: 800px;
+    margin: 100px auto;
     outline: 1px solid #aaaaaa38;
     box-shadow: 0px 0px 14px #eee;
+    position: relative;
 
     form {
         display: flex;
@@ -20,6 +23,7 @@
         }
         label {
             position: relative;
+            font-size: 18px;
             & + label {
                 margin-top: 2em;
             }
@@ -39,12 +43,36 @@
             }
         }
         button {
+            font-size: 18px;
             margin-top: 2em;
             border: 1px solid rgba(0, 0, 255, 0.411);
-            &:disabled {
-                background: #ffc0cb4d;
-                border-color: pink;
-            }
         }
+        a {
+            position: absolute;
+            bottom: 6px;
+            right: 12px;
+        }
+    }
+    &.register {
+        form {
+            position: relative;
+            width: 280px;
+            height: 240px;
+            input {
+                position: absolute;
+                right: 0;
+            }
+            button {
+                position: absolute;
+                bottom: 0;
+                width: 100%;
+            }
+            label .error {
+                bottom: -35px;
+            }
+            .conf {
+                color: transparent;
+            }
+        } 
     }
 }

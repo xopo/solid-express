@@ -1,31 +1,48 @@
 .details {
     display: grid;
-    grid-template-rows: 33px 43px 1fr 59px 324px;
-    height: 100vh;
-    width: 100vw;
-    margin: 1em;
+    grid-template-rows: 43px 1fr 59px 284px;
+    grid-auto-columns: 100%;
+    height: 95%;
+    padding: 1em;
     justify-content: center;
     max-height: 1000px;
+    max-width: 800px;
+    margin: 0 auto;
     &-participants {
-        list-style: none;
-        padding: unset;
-        margin: unset;
-        li {
-            position: relative;
-            &:not(.selected)::before {
-                content: '✔️';
-                font-size: 8px;
-                transform: translate(-5px, 6px);
-            }
-            &.selected::before {
-                margin-left: -20px;
-            }
-            &::before {
-                position: absolute;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                right: 30px;
+        position: relative;
+        > ul {
+            list-style: none;
+            padding: unset;
+            margin: unset;
+            li {
+                position: relative;
+                font-size: 18px;
+                padding-left: 1em;
+                height: 2em;
+                cursor: pointer;
+                &::before {
+                    position: absolute;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    right: 50px;
+                    font-size: 12px;
+                    transform: translate(-5px, 6px);
+                    content: '✔️';
+                }
+                &.selected::before {
+                    font-size: 14px;
+                    content: "🏓";
+                }
+                >.remove {
+                    font-size: 12px;
+                    padding: 2px 10px;
+                    margin-left: 2em;
+                    background-color: transparent;
+                    position: absolute;
+                    right: 0;
+                    border: 1px solid #eee;
+                }
             }
         }
         .header {
@@ -38,7 +55,20 @@
                 padding: 0;
                 height: 2em;
                 margin-top: 1em;
+                border: 1px solid #eee;
+                padding: 0 2px 0 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transform: translateY(2px);
             }
+        }
+        > button {
+            position: absolute;
+            right: 0;
+            bottom: -50px;
+            padding: 3px;
+            border: 1px solid #eee;
         }
     }
     &-tables {
@@ -46,27 +76,18 @@
         grid-template-columns: 1fr 1fr;
         gap: 1rem;
         .table {
-            background: green;
-            color: white;
-            border: 1px solid lime;
-            outline: 1px solid green;
-            display: flex;
-            align-items: center;
-            justify-content: space-around;
-            height: 76px;
-            width: 186px;
-            position: relative;
-            text-shadow: 0px 0px 5px #111;
-            font-weight: bolder;
             &::after {
                 content: '';
                 height: 100%;
                 width: 2px;
                 background: #00ff0042;
                 position: absolute;
+                left: 50%;
             }
             .who {
-                position: absolute;
+                > div {
+                    text-align: center;
+                }
                 bottom: 0;
                 left: 25px;
             }
@@ -84,6 +105,7 @@
         position: relative;
         span {
             position: absolute;
+            cursor: pointer;
             &:first-of-type {
                 left: 20px;
             }
@@ -91,14 +113,6 @@
                 right: 20px;
                 left: initial;
             }
-        }
-    }
-    .selected {
-        &:not(.mine) {
-            pointer-events: none;
-        }
-        &::before {
-            content: '🏓';
         }
     }
 }

@@ -1,0 +1,20 @@
+footer {
+    max-width: 800px;
+    margin: 0 auto;
+    font-size: 18px;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    button {
+        background-color: transparent;
+        margin-left: 0;
+        padding-left: 0;
+    }
+}
+
+@media screen and (max-width: 500px) {
+    footer a span {
+        display: none;
+    }
+}

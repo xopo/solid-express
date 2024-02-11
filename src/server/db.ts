@@ -1,12 +1,31 @@
 import Database from 'better-sqlite3';
 import {join} from 'path';
+import path from 'path';
+import {fileURLToPath} from 'url';
+
 import { Guest } from './routes/content';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename); 
 
 const dbFile = join(__dirname, './pingpong.db');
 const db = new Database(dbFile, {verbose: console.log})
 
+export function dbAddUser(user: {name: string, pass: string}) {
+    return db.prepare('INSERT INTO users (name, pass, token) values (?, ?, ?)').run(user.name, user.pass, user.pass);
+}
+
 export function dbGetUser(name: string) {
+    console.log('-- debGetUser', {name})
     return db.prepare('SELECT * FROM users WHERE name=?').get(name) as {id: number, name: string, pass: string, token: string};
+}
+
+export function dbGetUsers() {
+    return db.prepare('SELECT id, name FROM users').all() as {id: number, name: string, pass: string, token: string}[];
+}
+
+export function dbCheckUserExists(name: string) {
+    return db.prepare('SELECT id, name FROM users WHERE name=?').get(name) as {id:number, name: string} | undefined;
 }
 
 export function dbGetReservation(date: string) {
