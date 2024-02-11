@@ -1,10 +1,10 @@
 import { describe, expect, test, vi } from 'vitest';
 import { dbGetUser } from '../db.js';
 import request from 'supertest';
-import app from '../main';
-import bcrypt from 'bcrypt';
+import getServer from '../server.js';
 
 
+const app = getServer();
 
 vi.mock('../db.js', () => ({
     dbGetUser: (name: string) => {
@@ -14,17 +14,17 @@ vi.mock('../db.js', () => ({
 }))
 
 vi.mock("bcrypt", async (importOriginal) => {
-  const actual = await importOriginal() as {}
-  return {
-    ...actual,
-     compare: (_a: string, _b: string) => {
+    const actual = await importOriginal() as {}
+    return {
+        ...actual,
+        compare: (_a: string, _b: string) => {
         console.log('bcrypt compare', {_a, _b})
         return {isValid: true}
-     }
-  }
+        }
+    }
 })
 
-describe('test api', () => {
+describe('test api', () => { 
     test('correctly login user', async () => {
         const mock = vi.fn().mockImplementation(dbGetUser)
         mock.mockImplementation(() => {
