@@ -1,6 +1,6 @@
 import { Guest } from "../server/routes/content";
 import BASE_URL from "./const";
-import { Reservation, Table } from "./provider/ReserveProvider";
+import { Table } from "./provider/ReserveProvider";
 
 try {
     const {fetch: originalFetch} = window;

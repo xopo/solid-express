@@ -6,7 +6,7 @@ import './tables.scss';
 
 export default function Tables() {
     const context = useReservation();
-    if (!context || !context.mySelf()) return null;
+    if (!context ) return null;
     const [addForm, setAddForm] = createSignal<Reservation['table']|false>(false);
 
     const simpleName = (name?: string) => {
@@ -14,7 +14,7 @@ export default function Tables() {
     }
 
     const onClickTable = (table: Reservation['table']) => {
-        const isMine = context.data()?.tables.find(t => t.table === table)?.name === context.mySelf().safeName;
+        const isMine = context.data()?.tables.find(t => t.table === table)?.name === context.safeName();
         if (isMine) { // if is mine I can cancel
             context.addReservation(table)
         } else {
@@ -36,8 +36,8 @@ export default function Tables() {
                             class="table"
                             onClick={() => onClickTable(table)}
                             classList={{
-                                selected: !!context.data()?.tables.find(t => t.table === table),
-                                mine: context.data()?.tables.find(t => t.table === table)?.name === context.mySelf().safeName
+                                selected: !!context.data()?.tables.find(t => t.table === table), 
+                                mine: context.data()?.tables.find(t => t.table === table)?.name === context.safeName()
                             }}>
                                 <div class='free'>
                                     <div>{table}</div>

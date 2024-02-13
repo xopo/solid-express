@@ -5,9 +5,7 @@ import { dbAddUser, dbCheckUserExists, dbGetUser, dbGetUsers } from "../db";
 export function checkIsAuthenticated (req: Request, res: Response, next: NextFunction) {
     const {originalUrl} = req;
     if (originalUrl.includes('/api/')) {
-        console.info('--- here check session');
         if(req.session.user && req.session.authorized) {
-            console.info(originalUrl, 'is authorized', req.session.user)
             if (originalUrl.includes('login/getSelf')) {
                 const {id, name} = req.session.user;
                 res.json({id, name})
@@ -32,7 +30,16 @@ router.post('/', async (req, res) => {
     console.log('login post', {name, pass})
     const trimName = name.trim();
     const trimPass = atob(pass).trim();
+    if (trimName.length < 4) {
+        res.status(400).json({error: true, message: 'nume are min 4 caractere'})
+        return;
+    }
+    if (trimPass.length < 4) {
+        res.status(400).json({error: true, message: 'pass are min 4 caractere'})
+        return;
+    }
     const user = dbGetUser(trimName) as {id: number, name: string, pass: string, token: string};
+    console.log('-- post user', user)
     if (!user) {
         req.session.user = undefined;
         req.session.authorized = false;
@@ -40,7 +47,9 @@ router.post('/', async (req, res) => {
         res.status(401).json({error: true, message: 'combinatia nume parola gresite'})
         return;
     }
+    console.log('---', await bcrypt.hash(user.pass, 10))
     const isValid = await bcrypt.compare(trimPass, user.pass)
+    console.log('--[, ', {isValid})
     if (isValid) {
         req.session.safeName = `${user.id}-${user.name}`;
         req.session.user = user;
@@ -95,6 +104,12 @@ router.get<any, any, any, any, {name: string}>('/checkUser', async (req, res) =>
         return;
     }
     res.json({success: true});// , users})
+})
+
+router.get('/getSelf', (req, res) => {
+    const {id, name} = req.session.user!;
+    const safeName = `${id}-${name}`;
+    res.json({id, name, safeName})
 })
 
 router.post<any, any, any, {user: {name: string, pass: string}}>('/newUser', async (req, res) => {

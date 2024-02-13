@@ -15,25 +15,7 @@ declare module "solid-js" {
 }
 
 export default function Login() {
-    const [usr, setUsr] = createSignal('');
-    const [dup, setDup] = createSignal('');
-    // const exists  = createQuery<{error?: string}>(() => ({
-    //     queryKey: ['check-same'], 
-    //     queryFn: async () => {
-    //         const result = await apiCheckUserUnique(usr());
-    //         if (result.error) {
-    //             setDup(result.error);
-    //         } else {
-    //             setDup('');
-    //         }
-    //         return result;
-    //     },
-    //     enabled: usr().length > 4
-    // }));
     const {validate, errors, setErrors}  = useForm()
-    const exists = createResource(usr(), apiCheckUserUnique)
-    
-    // console.log('login context', context)
     let nameRef: HTMLInputElement = {value: ''} as HTMLInputElement;
     let passRef: HTMLInputElement = {value: ''} as HTMLInputElement;
     let confRef: HTMLInputElement;
@@ -129,7 +111,7 @@ export default function Login() {
                             refetchDupe();
                         }}
                     />
-                    {(errors?.nume ||  dup()) && <span class='error'>{errors.nume || dup()}</span>}
+                    {(errors?.nume ) && <span class='error'>{errors.nume}</span>}
                 </label>
                 <label>Parola
                     <input
@@ -165,7 +147,7 @@ export default function Login() {
                 </Show>
                 <button
                     onClick={onLogin}
-                    disabled={!!dup() || !!errors.nume.length || !!errors.parola.length || !!confErr().length}
+                    disabled={!!errors.nume.length || !!errors.parola.length || !!confErr().length}
                     type='button'
                 >{isLogin() ? 'Login' : 'Inregistreaza' }</button>
                 <Show when={isLogin()}>

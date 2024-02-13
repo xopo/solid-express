@@ -15,7 +15,7 @@ export default function GuestFormComponent({hide}: Props) {
 
     const [guest, setGuest] = createSignal<string>('')
     const saveGuest = async () => {
-        const result = await apiToggleGuest(btoa(context.date()), {guest: guest()})
+        const result = await apiToggleGuest(btoa(context.date()), guest())
         if (result.success) {
             context.refetch();
             hide();

@@ -9,11 +9,12 @@ export default defineConfig({
     server: {
         port,
         proxy: {
-                '/pingpong/api/': {
-                    target: `http://localhost:${port}`,
-                    changeOrigin: true,
-                    rewrite: (path) => path.replace(/^\/video-strong\/api/, '/api/'),
-                }
+            '/pingpong/api/': {
+                target: `http://localhost:${port}`,
+                changeOrigin: true,
+                rewrite: (path) => path.replace(/^\/video-strong\/api/, '/api/'),
             }
-      }
+        }
+    },
+    
 })

@@ -6,7 +6,7 @@ import { Guest } from "../../server/routes/content";
 
 export default function Participants() {
     const context = useReservation();
-    if (!context || !context.data || context.mySelf() === null) return null;
+    if (!context || !context.data ) return null;
 
     const [guestForm, setGuestForm] = createSignal(false);
     const addGuest = () => setGuestForm(true);
@@ -19,17 +19,17 @@ export default function Participants() {
         if (!context.data()?.users) {
             return false;
         }
-        return context.data()?.users.find(usr => usr.self === context.mySelf()!.safeName);
+        return context.data()?.users.find(usr => usr.self === context.safeName());
     }
     
     const extraElement = (user: User|Guest) => {
-        if ('self' in user && user.self === context.mySelf()!.safeName) {
+        if ('self' in user && user.self === context.safeName()) {
             return <button
                 class='remove'
                 onClick={context.toggleUser}
                 title='anuleaza participarea'
             >❌</button>
-        } else if ('guest' in user && user.guest.user === context.mySelf()!.safeName ) {
+        } else if ('guest' in user && user.guest.user === context.safeName() ) {
             return <button
                 class='remove'
                 onClick={() => context.removeGuest(user)}

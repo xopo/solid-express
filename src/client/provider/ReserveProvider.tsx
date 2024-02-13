@@ -2,7 +2,6 @@ import {createSignal, createContext, useContext, JSX, Accessor, createResource, 
 import { apiGetMyUser, apiToggleGuest, apiToggleTable, apiUserAddSelf } from '../api';
 import { agreedPlayDay, tables } from './const';
 import { getData } from './utils';
-import { getStoredSelf, storeSelf } from './storeutil';
 import { Guest } from '../../server/routes/content';
 import { effect } from 'solid-js/web';
 
@@ -23,12 +22,9 @@ export type DataType = {
 export type ProviderData = {
     addReservation: (table: typeof tables[number]) => Promise<void>;
     changeDate: (offset?: number) => void;
-    // checkUniqueUser: (n: string) => Promise<{ error: boolean; }>
-    mySelf: Accessor<Self | null>;
+    safeName: Accessor<string>;
     date: Accessor<string>;
     data: Resource<DataType>;
-    // loginUser: (n: string, p: string) => void;
-    // registerUser: (n: string, p: string) => void;
     refetch: () => void;
     removeGuest: (user: Guest) => void;
     toggleUser: () => void;
@@ -39,9 +35,9 @@ type AddReservation = {
     last: number,
 }
 
-const isDifferent = (a: any, b: any) => {
-    return JSON.stringify(a) !== JSON.stringify(b);
-}
+// const isSame = (a: any, b: any) => {
+//     return JSON.stringify(a) === JSON.stringify(b);
+// }
 
 const ReservationContext  = createContext<ProviderData>();
 
@@ -58,9 +54,9 @@ const getWednesday = (offset = 0) => {
 export function ReservationProvider(props: {children: JSX.Element}) {
     const [offset,setOffset] = createSignal(0)
     const [date, setDate] = createSignal<string>(getWednesday(offset()))
-    const [meMySelf] = createResource(apiGetMyUser);
+    const [mySelf] = createResource<Self|null>(apiGetMyUser);
     const [lastRequest, setLastRequest] = createSignal<AddReservation>()
-    const [mySelf, setMyself] = createSignal(getStoredSelf);
+    // const [mySelf, setMyself] = createSignal(getStoredSelf());
     const now = () => new Date().getTime();
     const addReservation = async (nr: typeof tables[number]) => {
         if (lastRequest()?.type !== 'add' || now() - (lastRequest()?.last || 0) > 500) {
@@ -88,7 +84,7 @@ export function ReservationProvider(props: {children: JSX.Element}) {
             refetch();
         }
     }
-
+    
     const removeGuest = async (guest: string | Guest) => {
         const result = await apiToggleGuest(btoa(date()), guest)
         if (result.success) {
@@ -106,19 +102,15 @@ export function ReservationProvider(props: {children: JSX.Element}) {
     onCleanup(() => {
         clearInterval(refetchInterval);
     })
-
+    
     effect(() => {
-        if (meMySelf()) {
-            const apiSelf = {...meMySelf(), safeName: `${meMySelf().id }-${meMySelf().name}`};
-            setMyself(apiSelf);
-            storeSelf(apiSelf);
-        }
+        console.log('-- myself', mySelf())
     })
-
+    
     const value = {
         addReservation,
         changeDate,
-        mySelf,
+        safeName: () => mySelf() ? `${mySelf()?.id }-${mySelf()?.name}` : '--',
         data,
         date,
         removeGuest,
