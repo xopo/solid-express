@@ -7,6 +7,6 @@ export default defineConfig({
         clearMocks: true,
         mockReset: true,
         restoreMocks: true,
-        bail: 2, // stop after 2 failure 
+        bail: 1, // stop after 2 failure 
   },
 })

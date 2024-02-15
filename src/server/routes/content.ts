@@ -1,12 +1,14 @@
 import { Router } from "express";
 import { dbGetReservation, dbToggleTable, dbToggleUser } from "../db";
 import { checkIsAuthenticated } from "./login";
+import validate from "../middleware/validate";
+import { postDateTable, postWithDate } from "../../common/validation/schema";
 
 const router = Router();
 
 router.post<any, any, any, any, {date: string}>
-('/', checkIsAuthenticated, async (req, res) => {
-    const {date} = req.query; 
+('/', checkIsAuthenticated, validate(postWithDate), async (req, res) => {
+    const {date} = req.body;
     const {tables, users} = dbGetReservation(atob(date)) || {tables: '[]', users: '[]'}
     const data = {tables: JSON.parse(tables), users: JSON.parse(users)};
     res.json({success: true, data})
@@ -14,7 +16,7 @@ router.post<any, any, any, any, {date: string}>
 
 
 router.post<any,any, any,{date: string},  any>
-('/addSelf', checkIsAuthenticated,  async (req, res) => {
+('/addSelf', checkIsAuthenticated, validate(postWithDate),  async (req, res) => {
     const {date} = req.body;
     const safeName = `${req.session.user!.id}-${req.session.user!.name}`;
     const data = dbToggleUser( {self: safeName }, atob(date))
@@ -22,7 +24,7 @@ router.post<any,any, any,{date: string},  any>
 })
 
 router.post<any,any, any,{date: string, table: Record<string, string | number> | number},  any>
-('/toggleTable', checkIsAuthenticated, async (req, res) => {
+('/toggleTable', checkIsAuthenticated, validate(postDateTable), async (req, res) => {
     const {date, table} = req.body;
     const augmentedTable = typeof table === 'number'
         ? { name: req.session.safeName!, table}
@@ -37,7 +39,7 @@ export type Unregistered = {
 export type Guest = {guest: {name: string, user: string}}
 
 router.post<any,any, any,{date: string, guest: Guest | Unregistered},  any>
-('/toggleGuest', checkIsAuthenticated,  async (req, res) => {
+('/toggleGuest', checkIsAuthenticated, validate(postWithDate),  async (req, res) => {
     const {date, guest} = req.body;
 
     if (typeof guest.guest === 'string' && guest.guest.trim().length < 4) {

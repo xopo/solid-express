@@ -51,9 +51,8 @@ export async function apiCheckUserUnique(name: string) {
     return Promise.resolve({error: 'numele trebuie sa contina min 4 charactere'})
 }
 
-export async function apiGetContent(date?: string) {
-    const extra = date ? `?date=${date}` : '';
-    return post(`content${extra}`)
+export async function apiGetContent(date: string) {
+    return post('content', {date})
 }
 
 export async function apiUserAddSelf(date: string) {

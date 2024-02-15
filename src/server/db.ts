@@ -12,11 +12,11 @@ const dbFile = join(__dirname, './pingpong.db');
 const db = new Database(dbFile, {verbose: console.log})
 
 export function dbAddUser(user: {name: string, pass: string}) {
+    console.info('-- dbAddUser Real function')
     return db.prepare('INSERT INTO users (name, pass, token) values (?, ?, ?)').run(user.name, user.pass, user.pass);
 }
 
 export function dbGetUser(name: string) {
-    console.log('-- debGetUser', {name})
     return db.prepare('SELECT * FROM users WHERE name=?').get(name) as {id: number, name: string, pass: string, token: string};
 }
 

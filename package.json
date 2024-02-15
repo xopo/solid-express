@@ -12,8 +12,6 @@
   },
   "dependencies": {
     "@solidjs/router": "^0.11.0",
-    "@tanstack/solid-query": "^5.18.1",
-    "@tanstack/solid-query-devtools": "^5.18.1",
     "@types/jest": "^29.5.12",
     "bcrypt": "^5.1.1",
     "better-sqlite3": "^9.3.0",
@@ -28,6 +26,7 @@
     "supertest": "^6.3.4",
     "ts-jest": "^29.1.2",
     "tsx": "^4.7.0",
+    "valibot": "^0.28.1",
     "vite-express": "^0.14.1"
   },
   "devDependencies": {

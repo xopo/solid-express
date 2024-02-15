@@ -8,12 +8,6 @@ dependencies:
   '@solidjs/router':
     specifier: ^0.11.0
     version: 0.11.0(solid-js@1.8.12)
-  '@tanstack/solid-query':
-    specifier: ^5.18.1
-    version: 5.18.1(solid-js@1.8.12)
-  '@tanstack/solid-query-devtools':
-    specifier: ^5.18.1
-    version: 5.18.1(@tanstack/solid-query@5.18.1)(solid-js@1.8.12)
   '@types/jest':
     specifier: ^29.5.12
     version: 29.5.12
@@ -56,6 +50,9 @@ dependencies:
   tsx:
     specifier: ^4.7.0
     version: 4.7.0
+  valibot:
+    specifier: ^0.28.1
+    version: 0.28.1
   vite-express:
     specifier: ^0.14.1
     version: 0.14.1
@@ -997,34 +994,6 @@ packages:
     peerDependencies:
       solid-js: ^1.8.6
     dependencies:
-      solid-js: 1.8.12
-    dev: false
-
-  /@tanstack/query-core@5.18.1:
-    resolution: {integrity: sha512-fYhrG7bHgSNbnkIJF2R4VUXb4lF7EBiQjKkDc5wOlB7usdQOIN4LxxHpDxyE3qjqIst1WBGvDtL48T0sHJGKCw==}
-    dev: false
-
-  /@tanstack/query-devtools@5.18.1:
-    resolution: {integrity: sha512-U8bDnDGuwdVMT4ndegPTcjOHOmX/UOjjB7o7UalRIq3DMHLRf8Ufh4+xoAvk3LNK5GBmUBfFSw4osYe5l9n7Lw==}
-    dev: false
-
-  /@tanstack/solid-query-devtools@5.18.1(@tanstack/solid-query@5.18.1)(solid-js@1.8.12):
-    resolution: {integrity: sha512-VXILpPXtxuCh9sHIL1Gi8MQtCn5UY+5XvroBgYlvkvkj5+wgEZtTw/Mkzlx6kfQbmbQfCi65QsTJme33nr38LA==}
-    peerDependencies:
-      '@tanstack/solid-query': ^5.18.1
-      solid-js: ^1.8.7
-    dependencies:
-      '@tanstack/query-devtools': 5.18.1
-      '@tanstack/solid-query': 5.18.1(solid-js@1.8.12)
-      solid-js: 1.8.12
-    dev: false
-
-  /@tanstack/solid-query@5.18.1(solid-js@1.8.12):
-    resolution: {integrity: sha512-kD1uVar0uTngdTXOk6U7lQ9V44MhNCi2MIVkxEZQD39pEv0ozy36iUe8BPdoLQps53BnrO+I6pZA1t1pjxVnwQ==}
-    peerDependencies:
-      solid-js: ^1.6.0
-    dependencies:
-      '@tanstack/query-core': 5.18.1
       solid-js: 1.8.12
     dev: false
 
@@ -4393,6 +4362,10 @@ packages:
       '@jridgewell/trace-mapping': 0.3.22
       '@types/istanbul-lib-coverage': 2.0.6
       convert-source-map: 2.0.0
+    dev: false
+
+  /valibot@0.28.1:
+    resolution: {integrity: sha512-zQnjwNJuXk6362Leu0+4eFa/SMwRom3/hEvH6s1EGf3oXIPbo2WFKDra9ymnbVh3clLRvd8hw4sKF5ruI2Lyvw==}
     dev: false
 
   /validate-html-nesting@1.2.2:

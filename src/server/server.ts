@@ -34,7 +34,7 @@ export default function getServer() {
                 clear: true,
                 intervalMs: 900000 //ms = 15min
             },
-            
+        
         }),
         secret: JWT_SECRET!,
     })

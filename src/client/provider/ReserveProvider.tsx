@@ -103,10 +103,6 @@ export function ReservationProvider(props: {children: JSX.Element}) {
         clearInterval(refetchInterval);
     })
     
-    effect(() => {
-        console.log('-- myself', mySelf())
-    })
-    
     const value = {
         addReservation,
         changeDate,
