@@ -1,9 +1,10 @@
-import {createSignal, createContext, useContext, JSX, Accessor, createResource, Resource, onMount, onCleanup } from 'solid-js';
+import { createSignal, createContext, useContext, JSX, Accessor,
+        createResource, Resource, onMount, onCleanup, Signal } from 'solid-js';
+import {createStore, unwrap, reconcile} from 'solid-js/store'
 import { apiGetMyUser, apiToggleGuest, apiToggleTable, apiUserAddSelf } from '../api';
 import { agreedPlayDay, tables } from './const';
 import { getData } from './utils';
 import { Guest } from '../../server/routes/content';
-import { effect } from 'solid-js/web';
 
 export type User = Record<'self', string>;
 
@@ -25,6 +26,7 @@ export type ProviderData = {
     safeName: Accessor<string>;
     date: Accessor<string>;
     data: Resource<DataType>;
+    name: Accessor<string>;
     refetch: () => void;
     removeGuest: (user: Guest) => void;
     toggleUser: () => void;
@@ -51,12 +53,24 @@ const getWednesday = (offset = 0) => {
     return myDate.toUTCString().split(' ').slice(1, 4).join(' ');
 }
 
+function createDeepSignal<T>(value: T): Signal<T> {
+    const [store, setStore] = createStore({value})
+    return[
+        () => store.value,
+        (v: T) => {
+            const unwrapped = unwrap(store.value)
+            typeof v === "function" && (v = v(unwrapped))
+            setStore("value", reconcile(v))
+            return store.value
+        }
+    ] as Signal<T>;
+}
+
 export function ReservationProvider(props: {children: JSX.Element}) {
     const [offset,setOffset] = createSignal(0)
     const [date, setDate] = createSignal<string>(getWednesday(offset()))
     const [mySelf] = createResource<Self|null>(apiGetMyUser);
     const [lastRequest, setLastRequest] = createSignal<AddReservation>()
-    // const [mySelf, setMyself] = createSignal(getStoredSelf());
     const now = () => new Date().getTime();
     const addReservation = async (nr: typeof tables[number]) => {
         if (lastRequest()?.type !== 'add' || now() - (lastRequest()?.last || 0) > 500) {
@@ -92,7 +106,9 @@ export function ReservationProvider(props: {children: JSX.Element}) {
         }
     }
 
-    const [data, {refetch}] = createResource(date, getData)
+    const [data, {refetch}] = createResource(date, getData, {
+        storage: createDeepSignal
+    })
 
     let refetchInterval: number;
     onMount(() => {
@@ -107,6 +123,7 @@ export function ReservationProvider(props: {children: JSX.Element}) {
         addReservation,
         changeDate,
         safeName: () => mySelf() ? `${mySelf()?.id }-${mySelf()?.name}` : '--',
+        name: () =>  mySelf()?.name || '',
         data,
         date,
         removeGuest,

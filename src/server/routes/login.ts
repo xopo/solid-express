@@ -77,7 +77,7 @@ router.post('/logout', async (req, res) => {
 })
 
 router.get<any, any, any, any, {name: string}>
-('/checkUser', checkIsAuthenticated, validate(getCheckUser), async (req, res) => {
+('/checkUser', validate(getCheckUser), async (req, res) => {
     const {name} = req.query;
     const result = dbCheckUserExists(name.trim())
     if (result?.id) {

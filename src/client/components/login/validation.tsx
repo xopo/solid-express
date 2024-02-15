@@ -1,5 +1,7 @@
 import { JSX } from 'solid-js';
+import {safeParse} from 'valibot';
 import {createStore} from 'solid-js/store';
+import { NameSchema, PassSchema } from '../../../common/validation/schema';
 
 
 export type BlurEv = JSX.FocusEventHandler<HTMLInputElement, FocusEvent> ;
@@ -9,19 +11,9 @@ export function useForm() {
     const [errors, setErrors] = createStore<{nume: string, parola: string}>({nume: '', parola: ''});
     
     const validate:BlurEv|InputEv = async (ev) => {
-        const minLength = parseInt(ev.currentTarget.getAttribute('minlength') || '0');
-        const maxLength = parseInt(ev.currentTarget.getAttribute('maxlength') || '30');
-        const value = ev.currentTarget.value.trim();
-
-        if (ev.currentTarget.required && value.length === 0) {
-          setErrors({[ev.currentTarget.name]: `${ev.target.name} contine min ${minLength} caractere`})
-        }  else if (value.length < minLength) {
-          setErrors({[ev.currentTarget.name]: `${ev.target.name} contine min ${minLength} caractere`})
-        } else if (value.length > maxLength) {
-          setErrors({[ev.currentTarget.name]: `${ev.target.name} contine max ${minLength} caractere`})
-        } else {
-          setErrors({[ev.currentTarget.name]: ''});
-        }
+        const schema = ev.target.name === 'nume' ? NameSchema : PassSchema;
+        const validation = safeParse(schema, ev.currentTarget.name === 'nume' ? ev.target.value: btoa(ev.currentTarget.value));
+        setErrors({[ev.currentTarget.name]: validation.issues?.length ? validation.issues[0].message : ''})
     }
 
     return {validate, errors, setErrors}

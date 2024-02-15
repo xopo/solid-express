@@ -1,16 +1,22 @@
-import {object, string, date, custom, regex, toTrimmed, minLength, maxLength, toCustom, Output, pick, number} from 'valibot';
+import {object, string, regex, toTrimmed, minLength, maxLength,
+        toCustom, Output, pick, number} from 'valibot';
+
+export const NameSchema = string('nume is required',[
+    toTrimmed(),
+    minLength(4, 'nume are min 4 caractere'),
+    maxLength(10, 'nume are max 10 caractere'),
+])
+
+export const PassSchema =  string('pass is required', [
+    toCustom((input) => atob(input)),
+    toTrimmed(),
+    minLength(4, 'parola are min 4 caractere'),
+    maxLength(10, 'parola are max 10 caractere')
+])
+
 const schema  = object({
-        name: string('-- nume is required',[
-            toTrimmed(),
-            minLength(4, 'nume are min 4 caractere'),
-            maxLength(10, 'nume are max 10 caractere'),
-        ]),
-        pass: string('-- Pass is required', [
-            toCustom((input) => atob(input)),
-            toTrimmed(),
-            minLength(4, 'parola are min 4 caractere'),
-            maxLength(10, 'parola are max 10 caractere')
-        ]),
+        name: NameSchema,
+        pass: PassSchema,
         id: number('Id is required'),
 })
 type LoginPayload = Output<typeof schema>;

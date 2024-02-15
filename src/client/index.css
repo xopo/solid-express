@@ -74,6 +74,13 @@ button:disabled {
     border-color: pink;
 }
 
+span.error {
+  color: red;
+  font-size: small;
+  font-style: italic;
+  text-align: right;
+}
+
 button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;

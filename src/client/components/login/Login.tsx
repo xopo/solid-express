@@ -1,18 +1,18 @@
-import { useForm } from './validation';
 import BASE_URL from '../../const';
-import { Show, createResource, createSignal } from 'solid-js';
+import { useForm } from './validation';
+import { Show, createResource, createSignal, onMount } from 'solid-js';
 import { useLocation } from '@solidjs/router';
 import { effect } from 'solid-js/web';
 import { apiCheckUserUnique, apiLogin, apiRegistration } from '../../api';
 import './login.scss';
-declare module "solid-js" {
-    namespace JSX {
-        interface Directives {
-            formSubmit: [() => any, (v: any) => any];
-            validate: [() => any, (v: any) => any];
-        }
-    }
-}
+// declare module "solid-js" {
+//     namespace JSX {
+//         interface Directives {
+//             formSubmit: [() => any, (v: any) => any];
+//             validate: [() => any, (v: any) => any];
+//         }
+//     }
+// }
 
 export default function Login() {
     const {validate, errors, setErrors}  = useForm()
@@ -47,7 +47,7 @@ export default function Login() {
             }
         }
     }
-    
+
     const checkUserName = async () => {
         const nameVal = nameRef.value.trim();
         if (location.pathname !== '/register' || nameVal.length < 4) {
@@ -63,12 +63,11 @@ export default function Login() {
     const [confErr, setConfErr] = createSignal('');
     const routeLocation = useLocation();
     const [isLogin, setIsLogin] = createSignal(true);
-    
 
     effect(() => {
         setIsLogin(routeLocation.pathname === `${BASE_URL}login`)
     })
-    
+
     const onLogin = async () => {
         if (nameRef.value.trim().length === 0) {
             nameRef.focus();
@@ -91,6 +90,10 @@ export default function Login() {
         }
         setConfErr('');
     }
+    
+    onMount(() => {
+        nameRef.focus();
+    })
 
     return (
         <div class="login" classList={{register: !isLogin()}}>
@@ -103,6 +106,7 @@ export default function Login() {
                         type='text'
                         minlength="4"
                         maxlength="15"
+                        autofocus
                         //@ts-ignore
                         oninput={validate}
                         required
@@ -120,6 +124,7 @@ export default function Login() {
                         type='password'
                         minlength="5"
                         maxlength="15"
+                        autocomplete='current-password'
                         required
                         disabled={!!errors.nume}
                         onblur={validate}
@@ -150,7 +155,7 @@ export default function Login() {
                     disabled={!!errors.nume.length || !!errors.parola.length || !!confErr().length}
                     type='button'
                 >{isLogin() ? 'Login' : 'Inregistreaza' }</button>
-                <Show when={isLogin()}>
+                <Show when={isLogin()} fallback={<a href={`${BASE_URL}login`}>inapoi la login</a>}>
                     <a href={`${BASE_URL}register`}>inregistrare</a>
                 </Show>
                 {JSON.stringify(_login)}
