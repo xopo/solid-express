@@ -2,8 +2,8 @@ import { Show } from "solid-js";
 import { useReservation } from "../provider/ReserveProvider";
 import Tables from "./tables/Tables";
 import Participants from "./Participants";
-import './mainpage.scss'
 import { effect } from "solid-js/web";
+import './mainpage.scss'
 
 export default function MainPage() {
     const context = useReservation();
@@ -15,11 +15,11 @@ export default function MainPage() {
     })
     return(
         <div class="details">
-            <div class='details-date'>
+            <div class='details-date' classList={{next: !dateInFuture()}}>
                 <Show when={dateInFuture()}>
                     <span onClick={() => context.changeDate(-1)}>⬅️</span>
                 </Show>
-                    Data: {context.date()}
+                <span class='title'>Miercuri: <strong>{context.date()}</strong></span>
                 <span onClick={() => context.changeDate()}>➡️</span>
             </div>
             <Participants />
