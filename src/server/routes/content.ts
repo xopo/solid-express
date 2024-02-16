@@ -1,15 +1,16 @@
 import { Router } from "express";
-import { dbGetReservation, dbToggleTable, dbToggleUser } from "../db";
 import { checkIsAuthenticated } from "./login";
 import validate from "../middleware/validate";
 import { postDateTable, postWithDate } from "../../common/validation/schema";
+import { dbGetReservation, dbToggleUser, dbToggleTable } from "../db/db";
 
 const router = Router();
 
 router.post<any, any, any, any, {date: string}>
 ('/', checkIsAuthenticated, validate(postWithDate), async (req, res) => {
     const {date} = req.body;
-    const {tables, users} = dbGetReservation(atob(date)) || {tables: '[]', users: '[]'}
+    const result = await dbGetReservation(atob(date));
+    const {tables, users} = result || {tables: '[]', users: '[]'};
     const data = {tables: JSON.parse(tables), users: JSON.parse(users)};
     res.json({success: true, data})
 })

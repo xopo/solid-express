@@ -10,7 +10,7 @@ const validate = (schema: BaseSchema) => (req: Request, res: Response, next: Nex
         })
         next();
     } catch (e: any) {
-        console.info('---, ', req.body, e);
+        //console.info('---, ', req.body, e);
         return res.status(401).send({
             error: true,
             message: e.issues[0].message

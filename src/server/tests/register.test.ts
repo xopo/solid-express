@@ -1,8 +1,9 @@
+
 import request from 'supertest';
 import createServer from '../server';
-import * as DB from '../db';
+import * as DB from '../db/db';
 import { MockInstance } from 'vitest';
-import Database from 'better-sqlite3';
+import { QueryBuilder } from 'knex';
 
 const app = createServer();
 const registerUrl = '/api/login/register';
@@ -10,10 +11,10 @@ const registerUrl = '/api/login/register';
 let addUserMock: MockInstance<[user: {
     name: string;
     pass: string;
-}], Database.RunResult> 
+}], QueryBuilder> 
 
 describe('Register', () => {
-    beforeAll(() => {
+    beforeAll(() => { 
         addUserMock = vi.spyOn(DB, 'dbAddUser');
     })
     describe('Given a short username', () => {
@@ -41,6 +42,7 @@ describe('Register', () => {
 
     describe('Given valid user and pass', () => {
         it('should return a 200 with a confirmation message', async () => {
+            //@ts-ignore
             const addUserMock = vi.spyOn(DB, 'dbAddUser').mockImplementationOnce(() => ({changes: 1, lastInsertRowid: 4}));
             const user = {name: 'daniel3', pass: btoa('34323')};
             const {body, statusCode} = await request(app).post(registerUrl).send(user)

@@ -1,5 +1,5 @@
 import {object, string, regex, toTrimmed, minLength, maxLength,
-        toCustom, Output, pick, number} from 'valibot';
+        toCustom, pick, number} from 'valibot';
 
 export const NameSchema = string('nume is required',[
     toTrimmed(),
@@ -19,7 +19,7 @@ const schema  = object({
         pass: PassSchema,
         id: number('Id is required'),
 })
-type LoginPayload = Output<typeof schema>;
+// type LoginPayload = Output<typeof schema>;
 
 export const loginSchema = object({
     body: pick(schema, ['name', 'pass'])

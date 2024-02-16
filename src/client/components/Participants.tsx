@@ -14,14 +14,14 @@ export default function Participants() {
     const extractName = (user: User | Guest) => {
         return 'self' in user ? user.self.split('-')[1] : user.guest.name;
     }
-    
+
     const particip = () => {
         if (!context.data()?.users) {
             return false;
         }
         return context.data()?.users.find(usr => usr.self === context.safeName());
     }
-    
+
     const extraElement = (user: User|Guest) => {
         if ('self' in user && user.self === context.safeName()) {
             return <button
@@ -48,7 +48,10 @@ export default function Participants() {
                     <ul>
                         <For each={context.data()?.users}>
                             {user => (
-                                <li classList={{selected: !!context.data()?.tables.find(t => t.name === user.self)}}>
+                                <li classList={{
+                                    self: 'self' in user && user.self === context.safeName(),
+                                    selected: !!context.data()?.tables.find(t => t.name === user.self)
+                                }}>
                                     {extractName(user)}
                                     {extraElement(user)}
                                 </li>

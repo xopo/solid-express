@@ -1,7 +1,7 @@
 import request from 'supertest';
 import createServer from '../server.js';
 import bcrypt from 'bcrypt';
-import * as DB from '../db.js';
+import * as DB from '../db/db.js';
 
 const app = createServer();
 
@@ -11,12 +11,12 @@ describe('Login', () => {
             vi.spyOn(bcrypt, 'compare').mockImplementationOnce(() => Promise.resolve(true))
             const {body, statusCode} = await request(app).post('/api/login').send({name: 'daniel', pass: btoa('34d323')});
             expect(statusCode).toBe(200);
-            expect(body).toEqual({ 
+            expect(body).toEqual({
                 "message": "all good",
                 "success": true,
             });
         })
-    }) 
+    })
     describe('given a user types wrong user or pass', () => {
         it('returns a 401 with an error', async () => {
             vi.spyOn(bcrypt, 'compare').mockImplementationOnce(() => (false))
@@ -54,7 +54,7 @@ describe('Login', () => {
     })
 
     describe('given a user has a long user pass', () => {
-        it('returns a 401 with an error', async () => { 
+        it('returns a 401 with an error', async () => {
             const {body, statusCode} = await request(app).post('/api/login').send({name: 'daniel', pass: btoa('34     asdfasfasfasfd')});
             expect(statusCode).toBe(401);
             expect(body).toEqual({
@@ -67,14 +67,16 @@ describe('Login', () => {
     describe('With logged in user', () => {
         let result: request.Response;
         beforeEach(async () => {
+            //@ts-ignore
             vi.spyOn(DB, 'dbCheckUserExists').mockImplementationOnce((name: string) => ({
                 id: 3,
                 name
             }));
+            //@ts-ignore
             vi.spyOn(DB, 'dbAddUser').mockImplementationOnce(({name, pass}) => {
-                console.log({name, pass});
                 return {changes: 1, lastInsertRowid: 4}
             })
+            //@ts-ignore
             vi.spyOn(DB, 'dbGetUser').mockImplementationOnce(() => ({id: 1, name: 'daniel', pass:'3234', token: '234'}))
             vi.spyOn(bcrypt, 'compare').mockImplementationOnce(() => (true));
             
@@ -93,12 +95,12 @@ describe('Login', () => {
                 it('should return a 200 with correct data1', async () => {
                     const {statusCode, body} = await request(app).get('/api/login/getSelf')
                         .set('cookie', result.header['set-cookie']);
-                    expect(statusCode).toBe(200); 
+                    expect(statusCode).toBe(200);
                     expect(body).toStrictEqual({id: 1, name: 'daniel', safeName: '1-daniel'})
                 })
             })
         })
-        
+
         describe('Check user', () => {
             describe('Given that a name is too small', () => {
                 it('returns a 401 with an error message', async() => {
@@ -118,6 +120,7 @@ describe('Login', () => {
             })
             describe('Given that a name is not register', () => {
                 it('returns a 200 with success message', async() => {
+                    //@ts-ignore
                     vi.spyOn(DB, 'dbCheckUserExists').mockImplementationOnce((name: string) => undefined);
                     const {statusCode, body} = await request(app).get('/api/login/checkUser').query({name:"daniel"})
                         .set('cookie', result.header['set-cookie']);

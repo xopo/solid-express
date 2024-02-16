@@ -1,8 +1,9 @@
 import { Request, Response, NextFunction, Router } from "express";
 import bcrypt from 'bcrypt';
-import { dbAddUser, dbCheckUserExists, dbGetUser, dbGetUsers } from "../db";
+import { dbAddUser, dbCheckUserExists, dbGetUser, dbGetUsers } from "../db/db";
 import validate from "../middleware/validate";
 import { getCheckUser, loginSchema } from "../../common/validation/schema";
+
 
 export function checkIsAuthenticated (req: Request, res: Response, next: NextFunction) {
     const {originalUrl} = req;
@@ -24,7 +25,7 @@ router.post('/', validate(loginSchema), async (req: Request, res: Response) => {
     const {name, pass} = req.body;
     const trimName = name.trim();
     const trimPass = atob(pass).trim();
-    const user = dbGetUser(trimName) as {id: number, name: string, pass: string, token: string};
+    const user = await dbGetUser(trimName);
     if (!user) {
         req.session.user = undefined;
         req.session.authorized = false;
@@ -79,7 +80,7 @@ router.post('/logout', async (req, res) => {
 router.get<any, any, any, any, {name: string}>
 ('/checkUser', validate(getCheckUser), async (req, res) => {
     const {name} = req.query;
-    const result = dbCheckUserExists(name.trim())
+    const result = await dbCheckUserExists(name.trim())
     if (result?.id) {
         res.status(400).json({error: 'exista un utilizator cu acest nume'})
         return;
@@ -96,7 +97,7 @@ router.get('/getSelf', checkIsAuthenticated, (req, res) => {
 router.post<any, any, any, {user: {name: string, pass: string}}>
 ('/newUser',checkIsAuthenticated, validate(loginSchema), async (req, res) => {
     const { user: {name, pass} } = req.body;
-    const data = dbAddUser({name, pass: bcrypt.hashSync(pass, 10)});
+    const data = await dbAddUser({name, pass: bcrypt.hashSync(pass, 10)});
     res.json({success: true, data})
 })
 export default router;
