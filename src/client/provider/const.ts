@@ -4,4 +4,5 @@ export const tables = [
     5, 6
 ] as const;
 
-export const agreedPlayDay = 3; // wednesday
+// Wednesday = Miercuri = 3 - ziua pentru calendar
+export const agreedPlayDay = 4; 

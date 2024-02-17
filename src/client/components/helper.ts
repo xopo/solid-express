@@ -16,8 +16,10 @@ export const getRelativeTime = (d1:Date, d2 = new Date()): string => {
 
     // "Math.abs" accounts for both "past" & "future" scenarios
     for (const u in units) {
-        if (Math.abs(elapsed) > units[u as UnitType] || u == 'second')
-        return rtf.format(Math.round(elapsed/units[u as UnitType]), u as UnitType)
+        if (Math.abs(elapsed) > units[u as UnitType] || u == 'second') {
+            const dayDiff = Math.round(elapsed/units[u as UnitType]) + 1;
+            return dayDiff <= 0 ? 'Azi ⏰' : rtf.format(dayDiff, u as UnitType)
+        }
     }
     return '';
 }

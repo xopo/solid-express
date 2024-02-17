@@ -36,7 +36,7 @@ export default function MainPage() {
     effect(() => {
         console.log('date in future', dateInFuture())
     })
-
+    
     const changeDate = (val = 1) => {
         setShowName(0);
         context.changeDate(val)

@@ -41,6 +41,7 @@ body, #root {
 body {
   display: flex;
   place-items: center;
+  user-select: none;
 }
 
 h1 {
