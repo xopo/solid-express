@@ -33,9 +33,6 @@ export default function MainPage() {
     const dayInMilliseconds = 1000 * 3600 * 24;
     const dateDiff = () => Math.abs((new Date(context.date()).valueOf() - new Date().valueOf()) / dayInMilliseconds);
     const dateInFuture = () => dateDiff() > 6;
-    effect(() => {
-        console.log('date in future', dateInFuture())
-    })
     
     const changeDate = (val = 1) => {
         setShowName(0);
@@ -44,9 +41,11 @@ export default function MainPage() {
     }
     const text2Show = () => {
         if (showName() === 0) {
-            return <strong classList={{first: !dateInFuture()}}>{`Miercuri : ${context.date()}`}</strong>
+            const [mount, day, year] = new Date(context.date()).toString().split(' ').slice(1, 4);
+            const displayDate = `${day} ${mount} ${year}`;
+            return <strong classList={{first: !dateInFuture()}}>{`Miercuri : ${displayDate}`}</strong>
         } else if (showName() === 1) {
-            return date2String(context.date(), true)//}` //date2String(diff);
+            return date2String(context.date(), true);
         }
         return <strong>{context.name()}</strong>
     }

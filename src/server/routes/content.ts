@@ -2,7 +2,7 @@ import { Router } from "express";
 import { checkIsAuthenticated } from "./login";
 import validate from "../middleware/validate";
 import { postDateTable, postWithDate } from "../../common/validation/schema";
-import { dbGetReservation, dbToggleUser, dbToggleTable } from "../db/db";
+import { dbGetReservation, dbToggleUser, dbToggleTable, dbAddChange } from "../db/db";
 
 const router = Router();
 
@@ -15,12 +15,35 @@ router.post<any, any, any, any, {date: string}>
     res.json({success: true, data})
 })
 
+// router.get('/stats', async (_req, res) => {
+//     await prepStream(res);
+    
+    
+//     let counter = 0;
+//     const i = setInterval(() => {
+//         counter++;
+//         sendMessage('message', counter, res);
+//         // res.write('event: message');
+//         // res.write(`data: {"value": ${counter}}`);
+//         // res.write('\n\n');
+//         // res.flush(); // for compression package to work ( not keep the buffer open)
+//         if (counter > 5) {
+//             clearInterval(i);
+//             sendMessage('close', Date.now(), res);
+//             // res.write('event: close\n');
+//             // res.write(`data: {"time": ${Date.now()}}`);
+//             // res.write('\n\n')
+//         }
+//     }, 2000);
+//     res.on('close', () => res.end());
+// })
 
 router.post<any,any, any,{date: string},  any>
 ('/addSelf', checkIsAuthenticated, validate(postWithDate),  async (req, res) => {
     const {date} = req.body;
     const safeName = `${req.session.user!.id}-${req.session.user!.name}`;
     const data = dbToggleUser( {self: safeName }, atob(date))
+    await dbAddChange(req.session.user!.id)
     res.json({success: true, data})
 })
 
@@ -31,6 +54,7 @@ router.post<any,any, any,{date: string, table: Record<string, string | number> |
         ? { name: req.session.safeName!, table}
         : table;
     const data = dbToggleTable( augmentedTable, atob(date))
+    await dbAddChange(req.session.user!.id)
     res.json({success: true, data})
 })
 
@@ -53,10 +77,8 @@ router.post<any,any, any,{date: string, guest: Guest | Unregistered},  any>
     } else {
         completeUser = guest as Guest;
     }
-    // const completeUser = typeof guest !== 'string' && guest.hasOwnProperty('guest') && guest.guest.hasOwnProperty('user')
-    //         ? guest as Guest
-    //         : { guest: { name: (guest as string), user: req.session.safeName } } as Guest;
     const data = dbToggleUser( completeUser, atob(date))
+    await dbAddChange(req.session.user!.id)
     res.json({success: true, data})
 })
 

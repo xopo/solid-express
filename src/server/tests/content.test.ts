@@ -52,7 +52,7 @@ describe('Content validation', () => {
             const {body, statusCode} = await request(app).post('/api/content')
                 //@ts-ignore
                 .set('cookie', loginResult.header['set-cookie'])
-                .send({date:  btoa('21 Aug 2021')});
+                .send({date:  btoa('2024-02-01T12:13:11.000Z')});
             expect(statusCode).toBe(200);
             expect(body).toStrictEqual( {
                 data: {tables: ['bibi'], users : ['bobo']},

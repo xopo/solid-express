@@ -1,10 +1,12 @@
 import { createSignal, createContext, useContext, JSX, Accessor,
-        createResource, Resource, onMount, onCleanup, Signal } from 'solid-js';
+        createResource, Resource, onCleanup, Signal } from 'solid-js';
 import {createStore, unwrap, reconcile} from 'solid-js/store'
 import { apiGetMyUser, apiToggleGuest, apiToggleTable, apiUserAddSelf } from '../api';
 import { agreedPlayDay, tables } from './const';
 import { getData } from './utils';
 import { Guest } from '../../server/routes/content';
+import BASE_URL from '../const';
+import { effect } from 'solid-js/web';
 
 export type User = Record<'self', string>;
 
@@ -37,9 +39,6 @@ type AddReservation = {
     last: number,
 }
 
-// const isSame = (a: any, b: any) => {
-//     return JSON.stringify(a) === JSON.stringify(b);
-// }
 
 const ReservationContext  = createContext<ProviderData>();
 
@@ -50,7 +49,8 @@ const getWednesday = (offset = 0) => {
     const myDate = new Date();
     const day = myDate.getDay();
     myDate.setDate(myDate.getDate() + (agreedPlayDay + 7 - day) % 7 + offset * 7);
-    return myDate.toUTCString().split(' ').slice(1, 4).join(' ');
+    const isoDate = myDate.toISOString().split('T');
+    return `${isoDate[0]}T00:00:00.000Z`
 }
 
 function createDeepSignal<T>(value: T): Signal<T> {
@@ -71,6 +71,24 @@ export function ReservationProvider(props: {children: JSX.Element}) {
     const [date, setDate] = createSignal<string>(getWednesday(offset()))
     const [mySelf] = createResource<Self|null>(apiGetMyUser);
     const [lastRequest, setLastRequest] = createSignal<AddReservation>()
+    let serverEvent: EventSource ;
+    onCleanup(() => {
+        serverEvent.close()
+    })
+    
+    effect(() => {
+        if (mySelf()?.id) {
+            serverEvent = new EventSource(`${BASE_URL}api/stats`)
+            serverEvent.onmessage = (msg: any) =>  {
+                if (msg.data !== mySelf()?.safeName) {
+                    refetch();
+                }
+            }
+            serverEvent.onerror = e => console.error(e.toString());
+            serverEvent.onopen = e => console.info('Server Event is open for business', e)
+        }
+    })
+
     const now = () => new Date().getTime();
     const addReservation = async (nr: typeof tables[number]) => {
         if (lastRequest()?.type !== 'add' || now() - (lastRequest()?.last || 0) > 500) {
@@ -110,15 +128,6 @@ export function ReservationProvider(props: {children: JSX.Element}) {
         storage: createDeepSignal
     })
 
-    let refetchInterval: number;
-    onMount(() => {
-        refetchInterval = window.setInterval(() => refetch(), 3000);
-    })
-
-    onCleanup(() => {
-        clearInterval(refetchInterval);
-    })
-    
     const value = {
         addReservation,
         changeDate,

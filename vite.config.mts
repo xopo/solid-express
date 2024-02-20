@@ -15,5 +15,5 @@ export default defineConfig({
                 rewrite: (path) => path.replace(/^\/video-strong\/api/, '/api/'),
             }
         }
-    },
+    }
 });
