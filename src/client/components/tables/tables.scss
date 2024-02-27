@@ -15,6 +15,7 @@
             font-family: cursive;
         }
         &.selected {
+            perspective: initial;
             &:not(.mine):not(li) {
                 cursor: not-allowed;
                 pointer-events: none;

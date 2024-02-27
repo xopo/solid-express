@@ -33,7 +33,6 @@
                 left: 0;
                 bottom: -2px;
                 bottom: -23px;
-                font-family: cursive;
                 right: 0;
                 left: auto;
                 &::first-letter {
@@ -60,6 +59,7 @@
             width: 280px;
             height: 240px;
             input {
+                max-width: 200px;
                 position: absolute;
                 right: 0;
             }
@@ -69,6 +69,7 @@
                 width: 100%;
             }
             label .error {
+                font-size: 15px;
                 bottom: -35px;
             }
             .conf {

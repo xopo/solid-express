@@ -32,7 +32,7 @@
             padding: unset;
             margin: unset;
             @media screen and (max-width: 500px) {
-                max-height: 340px;
+                max-height: calc(100dvh - 43px - 65px - 284px - 30px - 80px);;
                 overflow: scroll;
             }
             li {
@@ -138,6 +138,13 @@
         span {
             position: absolute;
             cursor: pointer;
+            &.title {
+                display: inline-block;
+                max-width: calc(100dvw - 140px);
+                overflow: hidden;
+                white-space: nowrap;
+                direction: rtl;
+            }
             &:first-of-type:not(.title){
                 left: 20px;
             }

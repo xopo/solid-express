@@ -51,7 +51,8 @@ router.post('/register',validate(loginSchema), async (req, res) => {
     const trimPass = atob(pass).trim();
     console.info({trimName, trimPass})
     try {
-        const result = dbAddUser({name: trimName, pass: bcrypt.hashSync(trimPass, 10)})
+        const result = await dbAddUser({name: trimName, pass: bcrypt.hashSync(trimPass, 10)})
+        console.log({result})
         res.json({success: true, message: result})
     } catch (er) {
         if (er instanceof Error) {
