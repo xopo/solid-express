@@ -1,0 +1,44 @@
+.icon.add_media {
+    width: 31px;
+    height: 29px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: unset;
+    padding: unset;
+    box-shadow: 0 0 6px #aaa;
+    outline: 1px solid #ddd;
+    position: fixed;
+    left: 2em;
+    bottom: 2em;
+    &:hover, &:active {
+        box-shadow: 0 0 6px lime;
+    }
+}
+
+.modal {
+    position: fixed;
+    top: 20%;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: 600px;
+    height: 300px;
+    background: #fffefe;
+    margin: 0 auto;
+    padding: 2em;
+    z-index: 1;
+    & + .backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100%;
+        height: 100%;
+        background: #aaaaaa63;
+        z-index: 0;
+    }
+}
+
