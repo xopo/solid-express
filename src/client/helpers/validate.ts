@@ -1,5 +1,5 @@
 import {safeParse} from 'valibot';
-import { UriSchema } from '../../common/validate/schema';
+import { uriSchema } from '../../common/validate/schema';
 
 export function inputValidate(schema: any, value: string) {
     const result = safeParse(schema, value);
@@ -9,4 +9,4 @@ export function inputValidate(schema: any, value: string) {
         : result.issues[0].context.message
 }
 
-export const validateUri = (value: string) => inputValidate(UriSchema, value)
+export const validateUri = (value: string) => inputValidate(uriSchema, value)

@@ -23,8 +23,9 @@ describe('/api/content', () => {
             const result = await request.get('/api/content').set('cookie', loginResponse.header['set-cookie']);;
             expect(result.statusCode).toBe(200);
         })
-        it.only('can get user roles', async() => {
-            const result = await request.get('/api/content/roles').set('cookie', loginResponse.header['set-cookie']);
+        it('can get user roles', async() => {
+            const result = await request.get('/api/content/roles')
+                .set('cookie', loginResponse.header['set-cookie']);
             expect(result.statusCode).toBe(200)
             expect(result.body).toStrictEqual({
                 "data":  [
@@ -32,6 +33,29 @@ describe('/api/content', () => {
                     "user",
                 ],
                 "success": true,
+            })
+        })
+
+        describe('given the user post add media from an incorrect url', () => {
+            it('returns 400', async () => {
+                const result = await request.post('/api/content/add')
+                    .send({url: 'bibi'})
+                    .set('cookie', loginResponse.header['set-cookie']);
+                expect(result.statusCode).toBe(400)
+            })
+        })
+
+        describe.only('given the user post a correct url', () => {
+            it('will add the media to db', async () => {
+                const result = await request.post('/api/content/add')
+                    // https://youtu.be/30vF9gTTwvU?feature=shared
+                    //https://rumble.com/v4f32nl-ex-who-consultant-who-leadership-is-compromised-and-seizing-power-w-dr.-tes.html
+                    .send({url: 'https://www.youtube.com/watch?v=egkG6ynXs-0'})
+                    .set('cookie', loginResponse.header['set-cookie']);
+                expect(result.statusCode).toBe(200)
+            })
+            it('will return media data if already in db', async () => {
+                const result = 4;
             })
         })
     })

@@ -3,6 +3,7 @@ import BASE_URL from "./const";
 type Error = {
     error: string;
     data: undefined;
+    success: undefined;
 }
 
 type Success<T> = {
@@ -69,3 +70,39 @@ export async function apiGetRoles() {
     return get<string[]>('content/roles')
 }
 
+
+
+export async function apiSubmitNewMedia(url: string) {
+    return post('content/add', {url});
+}
+
+export type DownloadMedia = {
+    name: string;
+    status: string;
+    thumbnail: string;
+    acknowledge: 0|1;
+    title?: string;
+    waiting_url: string;
+    add_time: string;
+}
+
+export type Waiting = Exclude<DownloadMedia, 'title'> & {
+    title?: undefined;
+}
+
+export type Confirmed = DownloadMedia & {
+    media_id: string;
+    categories?: string;
+    description: string;
+    epoch: number;
+    thumbnail: string;
+    duration_string: string;
+    channel_url: string;
+    uploader: string;
+    upload_date: string;
+    upload_url: string;
+}
+
+export  function apiGetWaiting() {
+    return  post<(Waiting|Confirmed)[]>('content/getWaiting');
+}

@@ -1,21 +1,31 @@
-import { Show, createSignal } from "solid-js";
+import { Show,  createSignal } from "solid-js";
 
-import './add_media.scss'
 import { Portal } from "solid-js/web";
 import { validateUri } from "../../helpers/validate";
+import { apiSubmitNewMedia } from "../../api";
+import WaitingFiles from "../table/WaitingFiles";
+import './add_media.scss'
 
 export default function AddMedia() {
     const [showModal, setShowModal] = createSignal(false)
     const [url, setUrl] = createSignal('')
     const [error, setError] = createSignal('')
+    const [waiting, setWaiting] = createSignal(false)
 
     const onBlur = () => {
-        console.log('on submit', url())
         const validation = validateUri(url())
         setError(validation === true ? '' : validation)
     }
-    
-    const submit = () => console.log('submit to backend');
+
+    const submit = async () => {
+        setWaiting(true);
+        const result = await apiSubmitNewMedia(url());
+        setWaiting(false);
+        if (result.success) {
+            setUrl('');
+            setError('');
+        }
+    }
 
     return (
         <>
@@ -27,8 +37,9 @@ export default function AddMedia() {
                         <div class="row">
                             <label for="url">Link to media</label>
                             <input
-                                classList={{'error': !!error().length}}
+                                classList={{'error': !!error()?.length}}
                                 id="url"
+                                value={url()}
                                 placeholder="http://www.youtbe  / rumble / facebook"
                                 type="url"
                                 onblur={onBlur}
@@ -37,17 +48,20 @@ export default function AddMedia() {
                         <div class="row">
                             <label>Pick a folder </label>
                             <div id="folder">#Todo</div>
-                        </div> 
-                        <div class="row">
-                            <button 
-                                type='button'
-                                disabled={error()?.length > 0 || url()?.length < 5 }
-                                onclick={submit}
-                            >{`${error() || 'Download'}`} _|_</button>
                         </div>
-                        {JSON.stringify({error:error(), url: url()})}
+                        <div class="row">
+                            <button
+                                type='button'
+                                disabled={!!error() || url()?.length < 5 }
+                                onclick={submit}
+                            >
+                                {`${error() || 'Download'}`} _|_
+                                {waiting() && <img width='30' src='/spinner'/>}
+                            </button>
+                        </div>
+                        <WaitingFiles />
                     </div>
-                    <div class="backdrop" />
+                    <div class="backdrop" onclick={() => setShowModal(false)}/>
                 </Portal>
             </Show>
         </>

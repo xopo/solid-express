@@ -5,11 +5,11 @@
 
 exports.up = function(knex)  {
     return knex.schema.createTable('description', function(table) {
-        table.integer('media_id');
+        table.string('media_id', 255).notNullable();
         table.string('title', 255).notNullable();
         table.string('categories', 255);
         table.text('description');
-        table.string('epoch', 20).notNullable();
+        table.integer('epoch').notNullable();
         table.string('thumbnail', 200).notNullable();
         table.string('duration_string', 20);
         table.string('channel_url', 255);

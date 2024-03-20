@@ -12,7 +12,8 @@ declare module 'express-session' {
 declare global {
     namespace Express {
         interface Request {
-            blabla: () => boolean
+            blabla: () => boolean,
+            url: string,
         }
     }
 }

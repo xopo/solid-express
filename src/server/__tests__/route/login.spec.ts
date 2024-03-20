@@ -29,7 +29,7 @@ describe('login route', () => {
             const loginData = {name: 'daniel', pass: btoa('asdfasf')}
             expect(true).toBeTruthy();
             const result = await request.post('/api/login').send(loginData)
-            expect(result.statusCode).toBe(200) 
+            expect(result.statusCode).toBe(200)
         })
     })
 })

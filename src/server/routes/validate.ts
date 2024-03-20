@@ -12,7 +12,8 @@ const validate = (schema: BaseSchema) => (req: Request, res: Response, next: Nex
     } catch (e: any) {
         //console.info('---, ', req.body, e);
         console.info('[validation schema express error:] ', e.message);
-        return res.status(401).send({
+        const status = req.originalUrl.includes('login') ? 401 : 400;
+        return res.status(status).send({
             error: true,
             message: e.issues[0].message
         });

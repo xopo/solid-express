@@ -8,6 +8,8 @@ import session from 'express-session';
 import Store from "better-sqlite3-session-store";
 import { config } from 'dotenv';
 import contentRoute from "./routes/content";
+import serverPushEvents from "./routes/serverPushEvents";
+import { STATIC_FILES } from "./routes/apihelper";
 config()
 
 const production = process.env.NODE_ENV === 'production';
@@ -45,15 +47,15 @@ app.use(
 //     saveUninitialized: false,
 // }));
 
-// app.use(`${base}media/`, express.static(mediaLocation))
+app.use(`${base}media/`, express.static(STATIC_FILES))
 
 // app.use(`${base}api/content`, content);
 
 app.use(`${base}api/login`, loginRoute );
 app.use(`${base}api/content`, contentRoute );
+app.use(`${base}api/newMedia`, serverPushEvents);
 
 app.get("/hello", (_, res) => {
-    console.log('get --- hello')
     res.json("Hello Vite + React + TypeScript!");
 });
 

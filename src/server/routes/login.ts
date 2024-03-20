@@ -1,4 +1,4 @@
-import { Router, Response, Request, RequestHandler } from "express";
+import { Router, Response, Request } from "express";
 import validate from "./validate";
 import bcrypt from 'bcrypt';
 
@@ -28,7 +28,6 @@ loginRoute.post< any, any, any, LoginBody>(
     req.session.user = {id: user.id, name: user.name};
     req.session.authorized = true;
     req.session.role =  await dbGetUserRoles(user.id)
-    console.log('session', req.session)
     res.json({success: 'Good Job'})
 })
 

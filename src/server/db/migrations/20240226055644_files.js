@@ -6,10 +6,10 @@
 exports.up = function(knex)  {
     return knex.schema.createTable('files', function(table) {
         table.increments('id');
-        table.string('mediaId', 15).notNullable();
+        table.string('media_id', 15).notNullable();
         table.string('name', 255).notNullable();
-        table.string('addTime', 255).notNullable();
-        table.unique('mediaId');
+        table.string('add_time', 255).notNullable();
+        table.unique('media_id');
         table.unique('name');
     })
 }

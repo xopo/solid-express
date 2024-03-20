@@ -14,8 +14,16 @@ export const PassSchema =  string('pass is required', [
     maxLength(10, 'parola are max 10 caractere')
 ])
 
-export const UriSchema = url('Url incorect');
+export const ValidateUrl = url('Url incorect');
 
+export const uriSchema = object({
+    body: object({
+        url: string('Url required', [
+            minLength(5),
+            ValidateUrl
+        ])
+    })
+})
 const schema  = object({
     name: NameSchema,
     pass: PassSchema,
