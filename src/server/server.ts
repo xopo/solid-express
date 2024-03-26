@@ -32,6 +32,8 @@ export default function getServer() {
     // app.use(compression());
     app.use(
         session({
+            resave: true,
+            saveUninitialized: false,
             store: new SqliteStore({
             client: db,
             expired: {
@@ -42,11 +44,11 @@ export default function getServer() {
         secret: JWT_SECRET!,
     }))
 
-    app.use(session({secret: JWT_SECRET!}));
+    // app.use(session({secret: JWT_SECRET!}));
     
     app.use(`${base}api/login`, login)
     
-    app.use(`${base}api/content`,  content)
+    app.use(`${base}api/content`, content)
     
     app.use(`${base}api/stats`, stats);
     

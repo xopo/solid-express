@@ -2,7 +2,6 @@
   "name": "solidjs",
   "private": true,
   "version": "0.0.0",
-  "type": "module",
   "scripts": {
     "dev": "nodemon -w src/server -x tsx src/server/main.ts",
     "test": "vitest",

@@ -1,9 +1,18 @@
 import { For, Show, createResource, createSignal } from "solid-js";
-import { apiAddUser, apiGetUsers } from "../../api";
-import { effect } from "solid-js/web";
+import { apiAddUser, apiGetUsers, apiResetPassword } from "../../api";
 import BASE_URL from "../../const";
+import { date2String } from "../helper";
 
-const getUsers = async ():Promise<{id: number, name: string}[]> => {
+import './users.scss';
+
+export type User = {
+    id: number,
+    name: string,
+    last_active: string
+    reset_password: 1|0
+};
+
+const getUsers = async ():Promise<User[]> => {
     const result = await apiGetUsers();
     if (result.error) {
         location.href = BASE_URL
@@ -15,7 +24,6 @@ export default function Users() {
     const [users, {refetch}] = createResource(getUsers);
     const [name, setName] = createSignal('');
     const [pass, setPass] = createSignal('');
-    
     const submitForm = async () => {
         const result = await apiAddUser({name: name(), pass: pass()});
         if (result.success) {
@@ -25,24 +33,30 @@ export default function Users() {
         }
     }
     
-    effect(() => {
-        console.log('users', users())
-    })
+    async function resetPassword(id: number) {
+        const result = await apiResetPassword(id);
+        if (result.success) {
+            refetch();
+        }
+    }
     return (
         <div class='users'>
-            <h1>Add new</h1>
+            <a class='home' href={BASE_URL} title='go home'>🏠</a>
+            <h3 class='title'>Add new user</h3>
             <form>
                 <input
                     type="text"
                     name="name"
                     id="name"
                     value={name()}
+                    autocomplete="off"
                     oninput={ev => setName(ev.target.value)}
                     placeholder="User's name: John" />
                 <input
                     type="password"
                     name="pass"
                     id="pass"
+                    autocomplete="off"
                     value={pass()}
                     oninput={ev => setPass(ev.target.value)}
                     placeholder="Parola" />
@@ -51,8 +65,13 @@ export default function Users() {
             <Show when={users()}>
                 <ul>
                     <For each={users()}>
-                        {user => (
-                            <li>{user.id} - {user.name}</li>
+                        {({id, name, last_active, reset_password}) => (
+                            <li>
+                                {id} - {name} <span>{last_active ? date2String(last_active, true) : ''}</span>
+                                {reset_password 
+                                    ? '🔥' 
+                                    : <button class='transparent icon' onClick={() =>resetPassword(id)}>♻️</button>}
+                            </li>
                         )}
                     </For>
                 </ul>

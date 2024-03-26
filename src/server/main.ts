@@ -8,11 +8,11 @@ export type User = {
     pass: string;
     token: string; 
 }
-declare module 'express-session' { 
+declare module 'express-session' {
     interface SessionData {
         safeName: string;
         user: User;
-        authorized: boolean; 
+        authorized: boolean;
         role: 'admin' | 'regular';
     }
 }

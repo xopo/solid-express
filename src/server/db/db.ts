@@ -1,20 +1,48 @@
 import knex from 'knex';
 
 import config from './knexfile.js';
-import { Guest } from '../routes/content.js';
+// import { Guest } from '../routes/content.js';
 
 const db = knex(config.database);
 
-const reservationTable = () => db<Reservation>('reservation');
+// db.on('query', (query) => console.log('[sqlite]', query.sql, JSON.stringify(null, query.bindings, 4)));
+// add query print
+db.on('query-response', (response, query) => {
+    if (query.sql.includes('* from `changes` order by `id`')) return;
+    console.log('[sqlite query]', query.sql, ',', `[${query.bindings ? query.bindings.join(',') : ''}]`);
+    console.log('[sqlite response]', response, '/n/n')
+})
+
+const reservationTable = () => db<Reservation>('reservations');
+const reservationUserTable = () => db('reservation_user as ru');
+const reservationGuestTable = () => db('reservation_guest as rg');
+const reservationTablesTable = () => db<ReservationTable>('reservation_table as rt')
 const usersTable = () => db<User>('users');
+const guestTable = () => db<Guest>('guests')
 const changesTable = () => db<Change>('changes');
 
 
 type Change = {id: number, owner: number, date: string, acknowledge: string};
-type Reservation = {tables: string, users: string, date: string};
+type Reservation = {id: number, date: string};
+type ReservationTable = {reservation_id: number, table: number, user_id: number, guest: string, date: string}
+type Guest = {id: number, name: string, user_id: number};
+
 
 export async function dbGetReservation(date: string) {
-    return reservationTable().where('date', date).first();
+    const result =  await reservationTable().where({date}).first();
+    console.log('get reservation', result)
+    return result;
+
+}
+
+export const test = () => {console.log('test original')}
+
+export const dbAddNewGuest = async (name: string, user_id: number) => {
+    return  guestTable().insert<number[]>({name, user_id})
+}
+
+export  const dbGetGuest = async (name: string, user_id: number) => {
+    return await guestTable().where({name, user_id}).limit(1).first();
 }
 
 export function now(str: true): string;
@@ -27,7 +55,7 @@ export function now (str?: boolean) {
 
 export async function dbAddChange(owner: number) {
     const date = now(true);
-    await changesTable().insert({owner, date});
+    return await changesTable().insert({owner, date});
 }
 
 export async function dbGetLastChange() {
@@ -56,41 +84,88 @@ export async function dbAcknowledgeSelf(changeId: number, userId: number) {
     }
 }
 
-export async function dbToggleUser(user: Guest | Record<string, string>, date: string ) {
-    const reservation = await dbGetReservation(date);
-    const data = reservation || {date: '', tables: '[]', users: '[]'};
-    const users = JSON.parse(data.users) as Array<Record<string, string>>;
-    let updUsers;
-    if (users.find(u => JSON.stringify(u) === JSON.stringify(user))) {
-        updUsers = users.filter(u => JSON.stringify(u) !== JSON.stringify(user))
-    } else {
-        updUsers = [...users, user];
-    }
-    updUsers = JSON.stringify(updUsers);
-    return reservation 
-        ? reservationTable().update('users', updUsers).where('date', date)
-        : dbInsertReservation({...data, date, users: updUsers});
+export async function dbCreateNewReservation(date: string) {
+    return reservationTable().insert({date})
 }
 
-export async function dbInsertReservation({date, tables, users}: {date: string, tables: string, users: string}) {
-    return reservationTable().insert({date, users, tables});
+export async function dbGetReservationGuest(guest_id: number, reservation_id: number, date: string) {
+    return reservationGuestTable().where({guest_id, reservation_id, date}).first();
 }
 
-export async function dbToggleTable(table: Record<string, string | number>, date: string) {
-    const record = await dbGetReservation(date);
-    const data = record || {date: '', tables: '[]', users: '[]'}
-    const tables = JSON.parse(data.tables) as Array<Record<string, string>>;
-    let updTables;
-    if (tables.find(u => JSON.stringify(u) === JSON.stringify(table))) {
-        updTables = tables.filter(u => JSON.stringify(u) !== JSON.stringify(table))
-    } else {
-        updTables = [...tables.filter(tbl => tbl.name !== table.name), table];
-    }
-    updTables = JSON.stringify(updTables);
-    return record
-        ? reservationTable().update('tables', updTables).where('date', date)
-        : dbInsertReservation({...data, date, tables: updTables});
+export async function dbGetReservationTables(reservation_id: number) {
+    return reservationTablesTable()
+        .select('reservation_id', 'table', 'user_id', 'name', 'date', 'guest')
+        .where({reservation_id})
+        .leftJoin('users as u', 'u.id', 'rt.user_id' )
 }
+
+export async function dbRemoveOtherTableFromReservation(user_id: number, reservation_id: number, date: string) {
+    return reservationTablesTable().where({ user_id, reservation_id, date}).delete();
+}
+
+export async function dbRemoveTableFromReservation(table: number, user_id: number, reservation_id: number, date: string) {
+    return reservationTablesTable().where({table, user_id, reservation_id, date}).delete();
+}
+
+export async function dbAddTableToReservation(table: number, user_id: number,reservation_id: number, date: string) {
+    return reservationTablesTable().insert({reservation_id, user_id, table, date});
+}
+
+export async function dbGetReservationTable( user_id: number,reservation_id: number, date: string) {
+    return reservationTablesTable().where({ user_id, reservation_id, date}).first();
+}
+
+export async function dbGetReservationGuests(reservation_id: number) {
+    return reservationGuestTable()
+        .select('name', 'guest_id', 'user_id')
+        .where({reservation_id})
+        .leftJoin('guests as g', 'g.id', 'guest_id');
+}
+
+export async function dbRemoveUserFromReservation(user_id: number, reservation_id: number, date: string) {
+    return reservationUserTable().where({user_id, reservation_id, date}).delete();
+}
+
+export async function dbAddUserToReservation(user_id: number, reservation_id: number, date: string) {
+    return reservationUserTable().insert({reservation_id, user_id, date});
+}
+
+export async function dbGetReservationUser(user_id: number, reservation_id: number, date: string) {
+    return reservationUserTable().where({user_id, reservation_id, date}).first();
+}
+
+export async function dbGetReservationUsers(reservation_id: number) {
+    return reservationUserTable()
+        .select('name', 'user_id')
+        .where({reservation_id})
+        .leftJoin('users as u', 'u.id', 'user_id');
+}
+
+export async function dbRemoveGuestFromReservation(guest_id: number, reservation_id: number, date: string) {
+    return reservationGuestTable().where({guest_id, reservation_id, date}).delete();
+}
+
+export async function dbAddGuestToReservation(guest_id: number, reservation_id: number, date: string) {
+    return reservationGuestTable().insert({reservation_id, guest_id, date});
+}
+
+export async function dbToggleGuest(guest: Guest | Record<string, string>, date: string ) {
+    console.info({'togle user': guest})
+    let reservation = await dbGetReservation(date);
+    console.log('reservaton', reservation) 
+    if (!reservation) {
+        const newReservation = await dbCreateNewReservation(date);
+        reservation = {id: newReservation[0], date};
+    }
+    
+    console.log('got reservation', reservation);
+    return {id: 3, name: 'fuck'}
+}
+
+export async function dbAddReservation(date: string) {
+    return await reservationTable().insert({date})
+}
+
 
 export function dbAddUser(user: {name: string, pass: string}) {
     return usersTable().insert({name: user.name, pass: user.pass, token: user.pass})
@@ -102,10 +177,46 @@ export function dbGetUser(name: string) {
 }
 
 export function dbGetUsers() {
-    return usersTable().select('id', 'name');
+    return usersTable().select('id', 'name', 'last_active', 'reset_password').orderBy('last_active', 'desc');
     // return db.prepare('SELECT id, name FROM users').all() as {id: number, name: string, pass: string, token: string}[];
 }
 
+// reset_password = 0 - no reset, account locked
+// reset_password = 1 - the user will be able to reset pass
 export function dbCheckUserExists(name: string) {
-    return usersTable().select('id', 'name').where('name', name).first();
+    return usersTable().select('id', 'name', 'reset_password').where('name', name).first();
+}
+
+export async function dbSetUserActive(id: number) {
+    return await usersTable().update('last_active', now(true)).where({id})
+}
+
+export async function dbAddParticipant2Table(date: string, name: string, table: number) {
+    const reservation = await reservationTablesTable().where({date, table}).first();
+    if (!reservation) {
+        return {error: 'no reservation'};
+    }
+    const guest = reservation.guest ? JSON.parse(reservation.guest) : [];
+    const updatedGuest = [... new Set([...guest, name])];
+    await reservationTablesTable().update('guest', JSON.stringify(updatedGuest)).where({date, table})
+    return {success: true}
+}
+
+export async function dbRemoveUserFromReservationTable(reservation_id: number, name: string, table: number) {
+    const reservation = await reservationTablesTable().where({reservation_id, table}).first();
+    if (!reservation) {
+        return {error: 'no reservation'};
+    }
+    const guest = reservation.guest ? JSON.parse(reservation.guest) : [];
+    const updatedGuest = guest.filter((g: string) => g !== name);
+    await reservationTablesTable().update('guest', JSON.stringify(updatedGuest)).where({reservation_id, table})
+    return {success: true}
+}
+
+export async function dbResetPassword(id: number) {
+    return usersTable().update('reset_password', 1).where({id})
+}
+
+export async function dbChangeUserPassword(id: number, pass: string) {
+    return usersTable().update('pass', pass).update('reset_password', 0).where({id}).andWhere('reset_password', 1);
 }

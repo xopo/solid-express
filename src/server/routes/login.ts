@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction, Router } from "express";
 import bcrypt from 'bcrypt';
-import { dbAddUser, dbCheckUserExists, dbGetUser, dbGetUsers } from "../db/db";
+import { dbAddUser, dbChangeUserPassword, dbCheckUserExists, dbGetUser, dbGetUsers, dbResetPassword } from "../db/db";
 import validate from "../middleware/validate";
 import { getCheckUser, loginSchema } from "../../common/validation/schema";
 
@@ -45,15 +45,19 @@ router.post('/', validate(loginSchema), async (req: Request, res: Response) => {
     res.status(401).json({error: true, message: 'combinatia nume parola gresite'})
 })
 
-router.post('/register',validate(loginSchema), async (req, res) => {
-    const {name, pass} = req.body;
+router.post<any, any, any, {name: string, pass: string, id: number}>
+('/register',validate(loginSchema), async (req, res) => {
+    const {name, pass, id} = req.body;
     const trimName = name.trim();
     const trimPass = atob(pass).trim();
-    console.info({trimName, trimPass})
     try {
-        const result = await dbAddUser({name: trimName, pass: bcrypt.hashSync(trimPass, 10)})
-        console.log({result})
-        res.json({success: true, message: result})
+        if (!id) {
+            const result = await dbAddUser({name: trimName, pass: bcrypt.hashSync(trimPass, 10)})
+            res.json({success: true, message: result})
+            return;
+        }
+        await dbChangeUserPassword(id, bcrypt.hashSync(trimPass, 10));
+        res.json({success: true})
     } catch (er) {
         if (er instanceof Error) {
             res.status(400).json(er.message)
@@ -61,9 +65,21 @@ router.post('/register',validate(loginSchema), async (req, res) => {
     }
 })
 
-router.get('/users', async (req, res) => {
+router.post<any, any, any, {id: number}>
+('/resetPassword', checkIsAuthenticated, async (req, res) => {
+    const {id} = req.body;
     if (req.session.role === 'admin') {
-        const users = dbGetUsers();
+        const result = await dbResetPassword(id);
+        res.json({success: true, result})
+    } else {
+        res.json({'error': 'redirect'})
+    }
+
+})
+
+router.get('/users', checkIsAuthenticated,  async (req, res) => {
+    if (req.session.role === 'admin') {
+        const users = await dbGetUsers();
         res.json({success: true, users})
     } else {
         res.json({'error': 'redirect'})
@@ -82,11 +98,12 @@ router.get<any, any, any, any, {name: string}>
 ('/checkUser', validate(getCheckUser), async (req, res) => {
     const {name} = req.query;
     const result = await dbCheckUserExists(name.trim())
-    if (result?.id) {
+    if (result?.id && result?.reset_password === 0) {
         res.status(400).json({error: 'exista un utilizator cu acest nume'})
         return;
     }
-    res.json({success: true});// , users})
+    const response = {success: true, data: { reset: result.reset_password === 1, id: result.id }};
+    res.json(response);
 })
 
 router.get('/getSelf', checkIsAuthenticated, (req, res) => {

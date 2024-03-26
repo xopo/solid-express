@@ -9,19 +9,18 @@ export default function Tables() {
     if (!context ) return null;
     const [addForm, setAddForm] = createSignal<Reservation['table']|false>(false);
 
-    const simpleName = (name?: string) => {
-        return name ? name.split('-')[1] : '';
-    }
-
-    const onClickTable = (table: Reservation['table']) => {
-        const isMine = context.data()?.tables.find(t => t.table === table)?.name === context.safeName();
+    const onClickTable = async (table: Reservation['table']) => {
+        const isSelected = context.data()?.tables.find(t => t.table === table);
+        if (!isSelected) {
+            setAddForm(table)
+            return;
+        }
+        const isMine = isSelected?.user_id === context.mySelf()?.id;
         if (isMine) { // if is mine I can cancel
             context.addReservation(table)
-        } else {
-            setAddForm(table)
         }
     }
-
+    
     const addTable = (table: Reservation['table']) => {
         setAddForm(false);
         context.addReservation(table);
@@ -37,7 +36,7 @@ export default function Tables() {
                             onClick={() => onClickTable(table)}
                             classList={{
                                 selected: !!context.data()?.tables.find(t => t.table === table), 
-                                mine: context.data()?.tables.find(t => t.table === table)?.name === context.safeName()
+                                mine: context.data()?.tables.find(t => t.table === table)?.user_id === context.mySelf()?.id
                             }}>
                                 <div class='free'>
                                     <div>{table}</div>
@@ -47,7 +46,7 @@ export default function Tables() {
                                     <div class='who'>
                                         <div>🏓</div>
                                         <div>
-                                            {simpleName(context.data()?.tables.find(t => t.table === table)?.name)}
+                                            {context.data()?.tables.find(t => t.table === table)?.name}
                                         </div>
                                     </div>
                                 </div>

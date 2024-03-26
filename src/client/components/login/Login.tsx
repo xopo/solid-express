@@ -5,17 +5,10 @@ import { useLocation } from '@solidjs/router';
 import { effect } from 'solid-js/web';
 import { apiCheckUserUnique, apiLogin, apiRegistration } from '../../api';
 import './login.scss';
-// declare module "solid-js" {
-//     namespace JSX {
-//         interface Directives {
-//             formSubmit: [() => any, (v: any) => any];
-//             validate: [() => any, (v: any) => any];
-//         }
-//     }
-// }
 
 export default function Login() {
     const {validate, errors, setErrors}  = useForm()
+    const [isReset, setIsReset] = createSignal<number | undefined>();
     let nameRef: HTMLInputElement = {value: ''} as HTMLInputElement;
     let passRef: HTMLInputElement = {value: ''} as HTMLInputElement;
     let confRef: HTMLInputElement;
@@ -38,7 +31,7 @@ export default function Login() {
         const name = nameRef.value.trim();
         const pass = passRef.value.trim();
         if (name.length >= 4 && pass.length >= 5) {
-            const result =  await apiRegistration(name, pass);
+            const result =  await apiRegistration(name, pass, isReset());
             if ('success' in result) {
                 location.href = BASE_URL;
             } else {
@@ -53,9 +46,11 @@ export default function Login() {
         if (location.pathname !== '/register' || nameVal.length < 4) {
             return Promise.resolve(true); // we don't care
         }
-        const response = await apiCheckUserUnique(nameVal) as {error?: string};
-        if (response.error) {
+        const response = await apiCheckUserUnique(nameVal);
+        if (typeof response.error === 'string') {
             setErrors({'nume': response.error})
+        } else if (response.data.id) {
+            setIsReset(response.data.id);
         }
     }
     const [_reg, {refetch: refetchRegister}] = createResource(registerUser);
@@ -94,7 +89,8 @@ export default function Login() {
     onMount(() => {
         nameRef.focus();
     })
-
+    
+    effect(() => console.log(isReset()));
     return (
         <div class="login" classList={{register: !isLogin()}}>
             <form>
@@ -154,7 +150,10 @@ export default function Login() {
                     onClick={onLogin}
                     disabled={!!errors.nume.length || !!errors.parola.length || !!confErr().length}
                     type='button'
-                >{isLogin() ? 'Login' : 'Inregistreaza' }</button>
+                >{isLogin() 
+                    ? 'Login' 
+                    : isReset() ? 'Reseteaza parola' : 'Inregistreaza' 
+                }</button>
                 <Show when={isLogin()} fallback={<a href={`${BASE_URL}login`}>inapoi la login</a>}>
                     <a href={`${BASE_URL}register`}>inregistrare</a>
                 </Show>

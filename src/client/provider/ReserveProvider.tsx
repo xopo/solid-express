@@ -1,24 +1,29 @@
 import { createSignal, createContext, useContext, JSX, Accessor,
-        createResource, Resource, onCleanup, Signal } from 'solid-js';
+        createResource, onCleanup, Signal, Resource } from 'solid-js';
 import {createStore, unwrap, reconcile} from 'solid-js/store'
 import { apiGetMyUser, apiToggleGuest, apiToggleTable, apiUserAddSelf } from '../api';
 import { agreedPlayDay, tables } from './const';
 import { getData } from './utils';
-import { Guest } from '../../server/routes/content';
 import BASE_URL from '../const';
 import { effect } from 'solid-js/web';
 
-export type User = Record<'self', string>;
+export type User = {name: string, user_id: number, guest_id: undefined}
+
+export type Guest = {name: string, user_id: number, guest_id: number}
 
 export type Table = (typeof tables)[number];
 
 export type Reservation = {
-    name: string;
+    reservation_id: number;
     table: Table;
+    user_id: number;
+    guest: string[];
+    name: string;
 }
 
 export type DataType = {
     users: User[];
+    guests: Guest[];
     tables: Reservation[];
 };
 
@@ -26,6 +31,7 @@ export type ProviderData = {
     addReservation: (table: typeof tables[number]) => Promise<void>;
     changeDate: (offset?: number) => void;
     safeName: Accessor<string>;
+    mySelf: Resource<Self | null>;
     date: Accessor<string>;
     data: Resource<DataType>;
     name: Accessor<string>;
@@ -73,7 +79,7 @@ export function ReservationProvider(props: {children: JSX.Element}) {
     const [lastRequest, setLastRequest] = createSignal<AddReservation>()
     let serverEvent: EventSource ;
     onCleanup(() => {
-        serverEvent.close()
+        serverEvent?.close()
     })
     
     effect(() => {
@@ -94,7 +100,7 @@ export function ReservationProvider(props: {children: JSX.Element}) {
         if (lastRequest()?.type !== 'add' || now() - (lastRequest()?.last || 0) > 500) {
             setLastRequest({type: 'add', last: now()})
             const table = nr;
-            const result = await apiToggleTable(btoa(date()), table);
+            const result = await apiToggleTable(date(), table);
             if (result.success) {
                 refetch();
             }
@@ -111,14 +117,14 @@ export function ReservationProvider(props: {children: JSX.Element}) {
     }
 
     const toggleUser = async () => {
-        const result = await apiUserAddSelf(btoa(date()));
+        const result = await apiUserAddSelf(date());
         if (result.success) {
             refetch();
         }
     }
-    
-    const removeGuest = async (guest: string | Guest) => {
-        const result = await apiToggleGuest(btoa(date()), guest)
+
+    const removeGuest = async (guest: Guest) => {
+        const result = await apiToggleGuest(date(), guest.name)
         if (result.success) {
             refetch();
         }
@@ -132,6 +138,7 @@ export function ReservationProvider(props: {children: JSX.Element}) {
         addReservation,
         changeDate,
         safeName: () => mySelf() ? `${mySelf()?.id }-${mySelf()?.name}` : '--',
+        mySelf,
         name: () =>  mySelf()?.name || '',
         data,
         date,

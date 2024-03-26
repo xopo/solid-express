@@ -1,85 +1,83 @@
 import { Router } from "express";
 import { checkIsAuthenticated } from "./login";
 import validate from "../middleware/validate";
-import { postDateTable, postWithDate } from "../../common/validation/schema";
-import { dbGetReservation, dbToggleUser, dbToggleTable, dbAddChange } from "../db/db";
+import { postDateTable, postGuest, postWithDate } from "../../common/validation/schema";
+import { dbGetReservation,  dbAddChange, dbSetUserActive, dbAddParticipant2Table, dbGetReservationUsers,
+        dbAddReservation,  dbGetReservationGuests, dbGetReservationTables, dbRemoveUserFromReservationTable } from "../db/db";
+import { toggleGuest, toggleSelf, toggleTable } from "../db/helper";
 
 const router = Router();
+
+type ContentData = {
+    users: {id: number, name: string}[];
+    guests: {id: number, name: string, user_id: number}[];
+    tables: {user_id: number, table: number}[];
+}
 
 router.post<any, any, any, any, {date: string}>
 ('/', checkIsAuthenticated, validate(postWithDate), async (req, res) => {
     const {date} = req.body;
-    const result = await dbGetReservation(atob(date));
-    const {tables, users} = result || {tables: '[]', users: '[]'};
-    const data = {tables: JSON.parse(tables), users: JSON.parse(users)};
+    const reservation = await dbGetReservation(date);
+    let data: ContentData = {users: [], guests: [], tables: []};
+    if (!reservation) {
+        await dbAddReservation(date);
+    } else {
+        data.users = await dbGetReservationUsers(reservation.id);
+        data.guests = await dbGetReservationGuests(reservation.id);
+        data.tables = await dbGetReservationTables(reservation.id);
+
+    }
+
+    if (req.session.user) {
+        await dbSetUserActive(req.session.user.id)
+    }
+
     res.json({success: true, data})
 })
 
-// router.get('/stats', async (_req, res) => {
-//     await prepStream(res);
-    
-    
-//     let counter = 0;
-//     const i = setInterval(() => {
-//         counter++;
-//         sendMessage('message', counter, res);
-//         // res.write('event: message');
-//         // res.write(`data: {"value": ${counter}}`);
-//         // res.write('\n\n');
-//         // res.flush(); // for compression package to work ( not keep the buffer open)
-//         if (counter > 5) {
-//             clearInterval(i);
-//             sendMessage('close', Date.now(), res);
-//             // res.write('event: close\n');
-//             // res.write(`data: {"time": ${Date.now()}}`);
-//             // res.write('\n\n')
-//         }
-//     }, 2000);
-//     res.on('close', () => res.end());
-// })
 
 router.post<any,any, any,{date: string},  any>
 ('/addSelf', checkIsAuthenticated, validate(postWithDate),  async (req, res) => {
     const {date} = req.body;
-    const safeName = `${req.session.user!.id}-${req.session.user!.name}`;
-    const data = dbToggleUser( {self: safeName }, atob(date))
+    res.json(await toggleSelf(req.session.user!.id, date));
     await dbAddChange(req.session.user!.id)
-    res.json({success: true, data})
 })
 
-router.post<any,any, any,{date: string, table: Record<string, string | number> | number},  any>
+router.post<any,any, any,{date: string, table: number},  any>
 ('/toggleTable', checkIsAuthenticated, validate(postDateTable), async (req, res) => {
     const {date, table} = req.body;
-    const augmentedTable = typeof table === 'number'
-        ? { name: req.session.safeName!, table}
-        : table;
-    const data = dbToggleTable( augmentedTable, atob(date))
+    const data = await toggleTable(table, req.session.user!.id, date)
     await dbAddChange(req.session.user!.id)
     res.json({success: true, data})
 })
 
 export type Unregistered = {
-    guest: string; 
+    guest: string;
 };
 export type Guest = {guest: {name: string, user: string}}
 
-router.post<any,any, any,{date: string, guest: Guest | Unregistered},  any>
-('/toggleGuest', checkIsAuthenticated, validate(postWithDate),  async (req, res) => {
-    const {date, guest} = req.body;
-
-    if (typeof guest.guest === 'string' && guest.guest.trim().length < 4) {
-        res.json({error: 'bad username'})
-        return;
-    }
-    let completeUser: Guest;
-    if (typeof guest === 'string') {
-        completeUser = { guest: { name: (guest as string), user: req.session.safeName! } }
-    } else {
-        completeUser = guest as Guest;
-    }
-    const data = dbToggleUser( completeUser, atob(date))
+router.post<any,any, any,{date: string, name: string, table: number}>
+('/add2table', checkIsAuthenticated, async(req, res) => {
+    const {date, name, table} = req.body;
+    await dbAddParticipant2Table(date, name, table);
     await dbAddChange(req.session.user!.id)
-    res.json({success: true, data})
+    res.status(200).json({success: true});
+})
+
+router.post<any,any, any,{reservation_id: number, name: string, table: number}>
+('/removeFromTable', checkIsAuthenticated, async(req, res) => {
+    const {reservation_id, name, table} = req.body;
+    const result = await dbRemoveUserFromReservationTable(reservation_id, name, table);
+    await dbAddChange(req.session.user!.id)
+    res.status(result.success ? 200 : 400).json(result);
+})
+
+router.post<any,any, any,{date: string, guest: string},  any>
+('/toggleGuest', checkIsAuthenticated, validate(postGuest),  async (req, res) => {
+    const {date, guest} = req.body;
+    const data = await toggleGuest(guest, req.session.user!.id, date);
+    await dbAddChange(req.session.user!.id)
+    res.json(data)
 })
 
 export default router;

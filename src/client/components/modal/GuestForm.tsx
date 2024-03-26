@@ -4,6 +4,7 @@ import { apiToggleGuest } from "../../api";
 import { useReservation } from "../../provider/ReserveProvider";
 import { safeParse } from 'valibot';
 import { NameSchema } from "../../../common/validation/schema";
+
 import './guestform.scss';
 
 type Props = {
@@ -18,7 +19,7 @@ export default function GuestFormComponent({hide}: Props) {
     const [error, setError] = createSignal<string>('');
     let isValid = safeParse(NameSchema, guest())
     const saveGuest = async () => {
-        const result = await apiToggleGuest(btoa(context.date()), guest())
+        const result = await apiToggleGuest(context.date(), guest())
         if (result.success) {
             context.refetch();
             hide();
