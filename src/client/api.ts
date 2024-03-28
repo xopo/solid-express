@@ -88,6 +88,8 @@ export type DownloadMedia = {
 
 export type Waiting = Exclude<DownloadMedia, 'title'> & {
     title?: undefined;
+    media_id: string;
+    url?: undefined;
 }
 
 export type Confirmed = DownloadMedia & {
@@ -101,8 +103,24 @@ export type Confirmed = DownloadMedia & {
     uploader: string;
     upload_date: string;
     upload_url: string;
+    url: string;
 }
 
 export  function apiGetWaiting() {
     return  post<(Waiting|Confirmed)[]>('content/getWaiting');
+}
+
+export function apiDeleteWaiting(file: Waiting | Confirmed) {
+    const {media_id, waiting_url, url} = file;
+    return post('content/delete', {media_id, url: url || waiting_url})
+}
+
+type Media =  {media_id: string }
+export async function apiRestartDownload(entry: Media, existing = false) {
+    const {media_id} = entry;
+    return post('content/reset', {media_id, existing})
+}
+
+export async function apiDeleteMedia(media_id: string) {
+    return post('content/delete', {media_id})
 }

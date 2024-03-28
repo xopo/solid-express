@@ -15,8 +15,13 @@
     position: fixed;
     left: 2em;
     bottom: 2em;
+    background-color: white;
     &:hover, &:active {
         box-shadow: 0 0 6px lime;
+    }
+    @include mobile {
+        left: 10px;
+        bottom: 15px;
     }
 }
 

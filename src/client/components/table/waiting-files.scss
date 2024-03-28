@@ -26,8 +26,12 @@ ul.download {
             border: 1px solid white;
             width: 100px;
             height: 50px;
-            object-fit: contain;
             overflow: hidden;
+            img {
+                width: 100px;
+                height: 50px;
+                object-fit: cover;
+            }
         }
         +.waiting {
             border-top: 1px solid #aaaaaa1f;
@@ -38,6 +42,40 @@ ul.download {
             position: absolute;
             right: 50%;
             bottom: 5px;
+        }
+        .info {
+            position: relative;
+            flex-grow: 1;
+            &.delete {
+                text-decoration: line-through;
+                color: pink;
+                cursor: pointer;
+            }
+        }
+        .status {
+            display: flex;
+            justify-content: space-between;
+            .delete {
+                cursor: pointer;
+                svg {
+                    path {
+                        fill: pink;
+                    }
+                    &:hover,&.active {
+                        path {
+                            fill: darkred;
+                        }
+                    }
+                }
+            }
+            //     position: absolute;
+            //     right: 10px;
+            //     bottom: 0px;
+            //     color: pink;
+            //     &:hover, &.active {
+            //         color: darkred;
+            //     }
+            // }
         }
     }
     @include mobile {

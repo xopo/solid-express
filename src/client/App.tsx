@@ -1,41 +1,27 @@
 import { Show, createResource } from 'solid-js'
-import './App.css'
-import Count from './components/Count'
 import Head from './components/Head'
-import Button from './components/Button'
 import { apiGetRoles } from './api'
-import { effect } from 'solid-js/web'
 import AddMedia from './components/media/AddMedia'
+import MediaList from './components/content/MediaList';
+import { Mp3Provider } from './context/appContext';
+import './App.scss';
 
-const fetchContent = async () => (await fetch('/api/content')).json();
-// const fetchRoles = async () => (await fetch('/api/content/roles')).json();
+
+
 
 function App() {
-  const [content] = createResource(fetchContent)
   const [roles] = createResource(apiGetRoles)
   const isUser = () => (roles()?.data || []).includes('user')
-  effect(() => console.log(roles()))
+  
   return (
-    <>
-      <Show
-          when={!content.loading}
-          fallback={<div>Loading....</div>}
-      >
-        {JSON.stringify(content)}
-      </Show>
+    <Mp3Provider>
       <Head />
-      <h1>Vite + Solid</h1>
-      <Count />
-      {/* <span>{hello.loading && "Loading..."}</span>
-      <p> -- resource {hello()}</p> */}
-      <Button />
-      <p class="read-the-docs">
-        Click on the Vite and Solid logos to learn more
-      </p>
+      <MediaList />
+      
       <Show when={isUser()}>
           <AddMedia />
       </Show>
-    </>
+    </Mp3Provider>
   )
 }
 

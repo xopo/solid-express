@@ -9,11 +9,24 @@ declare module 'express-session' {
     }
 }
 
+type ErrorResponse = {
+    error: true;
+    message?: string;
+}
+
+type SuccessResponse<T> = {
+    error: false;
+    data: T;
+}
+
 declare global {
     namespace Express {
         interface Request {
-            blabla: () => boolean,
-            url: string,
+            body: {
+                url?: string;
+                media_id?: string;
+            }
         }
+        interface Response extends ErrorResponse, SuccessResponse<any> {}
     }
 }

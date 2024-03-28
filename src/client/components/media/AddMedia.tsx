@@ -4,14 +4,13 @@ import { Portal } from "solid-js/web";
 import { validateUri } from "../../helpers/validate";
 import { apiSubmitNewMedia } from "../../api";
 import WaitingFiles from "../table/WaitingFiles";
-import './add_media.scss'
+import './add_media.scss';
 
 export default function AddMedia() {
     const [showModal, setShowModal] = createSignal(false)
     const [url, setUrl] = createSignal('')
     const [error, setError] = createSignal('')
     const [waiting, setWaiting] = createSignal(false)
-
     const onBlur = () => {
         const validation = validateUri(url())
         setError(validation === true ? '' : validation)
@@ -40,7 +39,7 @@ export default function AddMedia() {
                                 classList={{'error': !!error()?.length}}
                                 id="url"
                                 value={url()}
-                                placeholder="http://www.youtbe  / rumble / facebook"
+                                placeholder="ex: https://www.youtbe.com?v:2348j3-i&share=rumble/facebook"
                                 type="url"
                                 onblur={onBlur}
                                 onchange={e => setUrl(e.target.value)} />
@@ -59,7 +58,7 @@ export default function AddMedia() {
                                 {waiting() && <img width='30' src='/spinner'/>}
                             </button>
                         </div>
-                        <WaitingFiles />
+                        <WaitingFiles hide={() => setShowModal(false)}/>
                     </div>
                     <div class="backdrop" onclick={() => setShowModal(false)}/>
                 </Portal>

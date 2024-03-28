@@ -10,6 +10,7 @@ exports.up = function(knex)  {
         table.string('name', 255).notNullable();
         table.string('add_time', 255).notNullable();
         table.unique('media_id');
+        table.boolean('completed', false).notNullable();
         table.unique('name');
     })
 }

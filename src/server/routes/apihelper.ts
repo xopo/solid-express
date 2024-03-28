@@ -2,19 +2,15 @@ import youtubeDl from 'youtube-dl-exec';
 import { MediaDataType } from '../types';
 import {join} from 'node:path';
 import { config } from 'dotenv';
-import {  dbGetWaitingByMediaId, dbUpdateWaitingMediaStatus } from '../db/queries';
+import {  dbGetWaitingByMediaId, dbUpdateFileStatus, dbUpdateWaitingMediaStatus } from '../db/queries';
 import { fsGetContent, renameOld } from '../grabber/grab';
 import { unlink } from 'node:fs';
 
 export const {parsed: {STATIC_FILES}} = config() as {parsed: { STATIC_FILES:string}}
 export const mediaLocation = STATIC_FILES 
-// process.env.NODE_ENV === 'production'
-//     ? STATIC_FILES
-//     : join(__dirname, '../../../', STATIC_FILES);
 
 export const titleSafe = (title: string, id: string) => `${title.replace(/[^0-9a-z.\[\]]/gi, '')}[${id}]`;
 export const newPathFileName = (mediaLocation: string, titleSafe: string) => join(mediaLocation, `${titleSafe}`);
-// const chosenThumb = selectThumbnail(thumbnails, thumbnail);
 
 type ThumbType = {
     url: string;
@@ -66,10 +62,9 @@ export async function downloadFile(url: string, media_id: string) {
             //@ts-ignore
             paths: mediaLocation,
         })
-        console.log('download completed for file', url)
-        if (mp3File) {
-            await renameFile(media_id);
-        }
+        console.log('download completed for file', url, 'and sent to', mediaLocation)
+        await renameFile(media_id);
+        await dbUpdateFileStatus(media_id, true);
         return !!mp3File;
     } catch(er) {
         console.error(er);

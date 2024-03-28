@@ -8,5 +8,12 @@ export default defineConfig({
   plugins: [solid(), tsconfigPaths()],
   server: {
     port
+  },
+  build: {
+    rollupOptions: {
+      external: [
+        "sharp"
+      ]
+    }
   }
 })

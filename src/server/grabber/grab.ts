@@ -1,12 +1,12 @@
 import { Payload, Thumbnail } from "youtube-dl-exec";
-import { WaitingMedia, dbAddNewDescription, dbAddNewFile, dbFileExists, dbGetDownloadingMedia, dbGetFirstWaitingMedia, dbGetNewWaitingMedia, dbUpdateWaitingMediaStatus, descriptionInDb } from "../db/queries";
+import { WaitingMedia, dbAddNewDescription, dbAddNewFile, dbFileExists, dbGetDownloadingMedia, dbGetFirstWaitingMedia, dbGetNewWaitingMedia, dbUpdateWaitingMediaId, dbUpdateWaitingMediaStatus, descriptionInDb } from "../db/queries";
 import { STATIC_FILES, downloadFile, downloadMediaData } from "../routes/apihelper";
-import { Dirent, createWriteStream, existsSync, readdirSync, renameSync, writeFileSync } from "fs";
+import { Dirent, createWriteStream, existsSync, readdirSync, renameSync, unlinkSync, writeFileSync } from "fs";
 import axios from 'axios';
 import { finished } from "stream/promises";
 import { Readable } from "stream";
 import { join } from "path";
-import { cutAndSave, toLargeThumbnail, toSmallThumbnail } from "../routes/imageHelper";
+import { cutAndSave, toLargeThumbnail } from "../routes/imageHelper";
 
 /**
  * Get max 20 new entries from db
@@ -19,13 +19,16 @@ export async function grabWaiting() {
         for(let media of newMedia) {
             console.log('[get image and details for media]: ', media.media_id, media.url)
             const details = await downloadMediaData(media.url);
-            if (details) {
-                dbUpdateWaitingMediaStatus(media.id, 'details')
+            if (details && !details.is_live) {
+                if (details.id !== media.media_id) {
+                    await dbUpdateWaitingMediaId(media.id, details.id)
+                }
+                await dbUpdateWaitingMediaStatus(media.id, 'details')
                 // get file name to use in image and file
                 const title = `${details.title.replace(/[^0-9a-z.\[\]]/gi, '')}[${details.id}]`;
                 // check image exist else 
                 if (!(await imageWithTitleExists(title))) {
-                    grabImage(media, details, title)
+                    await grabImage(media, details, title)
                 }
                 if (!(await dbFileExists(details.id))) {
                     await dbAddNewFile(details.id, title);
@@ -36,13 +39,14 @@ export async function grabWaiting() {
                     await dbUpdateWaitingMediaStatus(media.id, 'waiting')
                 }
                 writeFileSync(`/tmp/${media.media_id}.details`, JSON.stringify(details, null, 2))
+            } else if (details.is_live) {
+                await dbUpdateWaitingMediaStatus(media.id, 'live');
             }
         }
     }
 }
 
-export const newPathFileName = (title: string, extension: string, small=false) =>
-    join(STATIC_FILES, `${title}`) +  (small ? '_small' : '') +  '.' +  extension;
+export const newPathFileName = (title: string) => join(STATIC_FILES, `${title}`) +  '.webp';
 
 
 /**
@@ -67,10 +71,9 @@ export const getExtension = (url: string) => url.split('?')[0].split('.').revers
 
 export async function grabImage(media: WaitingMedia, details: Payload, title: string) {
     const alternativeImgUrl = details.thumbnail || details.thumbnails[0].url;
-
-    if (media.url.includes('youtube') && details.thumbnails.length) {
+    // works for youtube.com and youtu.be urls
+    if (media.url.includes('youtu') && details.thumbnails.length) {
         const sorted = details.thumbnails.sort((a, b) => a.preference - b.preference);
-        const smallestWebp = sorted.find(f => f.url.split('.').reverse()[0] === 'webp')
         let smallThumbNail: Thumbnail | undefined = undefined;
         for(let quality of youtubeQualityOrder) {
             const target = sorted.find(f => {
@@ -82,31 +85,18 @@ export async function grabImage(media: WaitingMedia, details: Payload, title: st
             }
         }
         if (smallThumbNail) {
-            const extension = getExtension(smallThumbNail.url)
-            const newPath = newPathFileName(title, extension);
+            const newPath = newPathFileName(title);
             url2file(smallThumbNail.url, newPath )
         } else {
             // no preference, hence use default thumbnail and transform size
-            toLargeThumbnail(alternativeImgUrl, newPathFileName(title, getExtension(alternativeImgUrl)))
+            toLargeThumbnail(alternativeImgUrl, newPathFileName(title))
         }
-        if (smallestWebp) {
-            const extension = getExtension(smallestWebp.url)
-            const newPath = newPathFileName(title, extension, true);
-            url2file(smallestWebp.url, newPath)
-        } else { 
-            const extension = getExtension(alternativeImgUrl)
-            const newPath = newPathFileName(title, extension, true);
-            // no preference, hence use default thumbnail and transform size
-            toSmallThumbnail(alternativeImgUrl, newPath)
-        }
+    
     } else if (media.url.includes('rumble')) {
-        const extension = getExtension(alternativeImgUrl)
-        const newPathSmall = newPathFileName(title, extension, true);
-        const newPathLarge = newPathFileName(title, extension);
-        toSmallThumbnail(details.thumbnail, newPathSmall);
+        const newPathLarge = newPathFileName(title);
         toLargeThumbnail(details.thumbnail, newPathLarge);
     }
-    dbUpdateWaitingMediaStatus(media.id, 'details')
+    await dbUpdateWaitingMediaStatus(media.id, 'details')
 }
 
 const url2file = async (url: string, thumbPath: string) => {
@@ -144,4 +134,15 @@ export const renameOld = (oldName: string, newName: string) =>{
     const pathToOld = join(STATIC_FILES, oldName);
     const pathToNew = join(STATIC_FILES, newName);
     renameSync(pathToOld, pathToNew);
+}
+
+export const removeFilesIfExists = async (media_id: string) => {
+    const images = readdirSync(STATIC_FILES, {withFileTypes: true});
+    images
+        .filter(ent => ent.isFile())
+        .filter(entry => entry.name.includes(media_id))
+        .forEach(entry => {
+            const path = join(STATIC_FILES, entry.name);
+            unlinkSync(path);
+        })
 }

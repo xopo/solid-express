@@ -10,7 +10,7 @@ const config = {
 
     client: 'better-sqlite3',
     connection: {
-      filename: getAbsPath('src/server/db/ping_pong_db.sqlite')
+      filename: getAbsPath('src/server/db/mp3db.sqlite')
     },
     useNullAsDefault: true,
     migrations: {

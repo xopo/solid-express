@@ -10,16 +10,16 @@ export type LoginBody = { name: string, pass: string };
 
 const loginRoute = Router();
 
-loginRoute.post< any, any, any, LoginBody>(
+loginRoute.post<any, any, any, LoginBody>(
 '/', validate(loginSchema), async (req: Request, res: Response) => {
     const {name, pass } = req.body;
     if (!name || !pass) {
         return res.status(400).json({error: 'bad user/pass'})
     }
     const user = await dbGetUserByName(name);
-    const valid = await bcrypt.compare(atob(pass).trim(), user?.pass)
+    const valid = await bcrypt.compare(atob(pass).trim(), user?.pass || '')
     if (!user || !valid) {
-        req.session.user = undefined;
+        req.session.user = undefined; 
         req.session.authorized = false;
         req.session.role = undefined;
         return res.status(400).json({error: 'bad user/pass'})

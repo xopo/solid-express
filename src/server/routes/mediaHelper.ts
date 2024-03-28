@@ -12,7 +12,7 @@ export const extractMediaMetaFromUrl = (mediaUrl: string): MediaType => {
     if (mediaUrl.includes('rumble')) {
         return { type: 'rumble', id: extractRumbleId(mediaUrl)};
     }
-    throw new Error(`[extractMediaMetaFromUrl] - cannot extract meta from url ${url}`);
+    throw new Error(`[extractMediaMetaFromUrl] - cannot extract meta from url ${url}`); 
 }
 
 

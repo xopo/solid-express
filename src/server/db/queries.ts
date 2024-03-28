@@ -12,7 +12,8 @@ export type File = {
     id: number;
     media_id: string;
     name: string;
-    add_time: string
+    add_time: string;
+    completed: boolean;
 }
 
 export type Description = {
@@ -73,7 +74,8 @@ export const dbInsertWaitingMedia = async (media_id: string, url: string) =>  ge
 
 export const dbGetWaitingMedia = async (limit = 100) =>
     getWaitingTable()
-        .select('wm.media_id', 'wm.url as waiting_url', 'wm.status', 'wm.acknowledge', 'f.name', 'f.add_time', 'd.*')
+        .select('wm.media_id', 'wm.url as waiting_url', 'wm.status', 'wm.acknowledge', 'f.name', 'f.add_time',
+        'd.title', 'd.thumbnail', 'd.description', 'd.epoch', 'd.duration_string', 'd.channel_url', 'd.uploader', 'd.upload_date', 'd.upload_url')
         .leftJoin('files as f', 'f.media_id', 'wm.media_id')
         .leftJoin('description as d', 'd.media_id', 'wm.media_id')
         .limit(limit)
@@ -84,6 +86,7 @@ export const dbGetFirstWaitingMedia = async () => getWaitingTable()
     .leftJoin('files as f', 'f.media_id', 'wm.media_id')
     .orderBy('wm.id', 'asc')
     .where('status', 'waiting')
+    .orWhere('status', 'details')
     .first();
 
 export const dbGetDownloadingMedia = async () => getWaitingTable()
@@ -107,10 +110,26 @@ export const dbGetNewWaitingMedia = async (limit =20) => getWaitingTable()
     .where('status', null)
     .limit(limit);
 
-type Status = 'download' | 'waiting' | 'details' | 'ready'| 'done'| null;
+export const dbGetToDeleteMedia = async () => getWaitingTable().where('status', 'delete');
+
+export const dbRemoveDeletableFromDB = async() => getWaitingTable().where('status', 'delete').delete();
+
+type Status =  'download' | 'waiting' | 'details' | 'ready'| 'done'| 'live' | 'delete' | null;
 export const dbUpdateWaitingMediaStatus = async (id: number, status: Status) => {
     await getWaitingTable()
         .where({id})
+        .update({status, acknowledge: '0'})
+}
+
+export const dbUpdateWaitingMediaId = async (id: number, media_id: string) => {
+    await getWaitingTable()
+        .where({id})
+        .update({media_id})
+}
+
+export const dbUpdateWaitingMediaStatusByMediaId = async (media_id: string, status: Status) => {
+    await getWaitingTable()
+        .where({media_id})
         .update({status, acknowledge: '0'})
 }
 
@@ -136,10 +155,14 @@ export const dbAddNewFile = async (media_id: string, name: string) => {
     return getFilesTable().insert({
         name,
         media_id,
-        add_time: now()
+        add_time: now(),
+        completed: false,
     });
 }
 
+export const dbRemoveFileByMediaId = async (media_id: string) => {
+    return getFilesTable().where({media_id}).delete();
+}
 
 
 // Description Table
@@ -162,4 +185,27 @@ export const dbAddNewDescription = (description: Payload) => {
         upload_date: description.upload_date,
         upload_url: description.uploader_url
     })
+}
+
+export const dbRemoveDetailsByMediaId = (media_id: string) => {
+    return getDescriptionTable().where({media_id}).delete();
+}
+
+export const dbGetDetailsByMediaId = (media_id: string) => {
+    return getDescriptionTable().where({media_id}).first();
+}
+
+// GET Content
+
+export async function dbGetUserContent(user_id: number) {
+    if (!user_id) return [];
+    return await getFilesTable()
+        .select('f.name', 'f.add_time', 'd.*')
+        .leftJoin('description as d', 'd.media_id', 'f.media_id')
+        .where('f.completed', true)
+        .orderBy('f.add_time', 'desc');
+}
+
+export async function dbUpdateFileStatus(media_id:string, completed: boolean) {
+    return getFilesTable().update({completed}).where({media_id});
 }

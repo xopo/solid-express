@@ -41,6 +41,9 @@ dependencies:
   nodemon:
     specifier: ^3.0.3
     version: 3.0.3
+  optional:
+    specifier: ^0.1.4
+    version: 0.1.4
   sass:
     specifier: ^1.70.0
     version: 1.70.0
@@ -2728,6 +2731,10 @@ packages:
     dependencies:
       mimic-fn: 4.0.0
     dev: true
+
+  /optional@0.1.4:
+    resolution: {integrity: sha512-gtvrrCfkE08wKcgXaVwQVgwEQ8vel2dc5DDBn9RLQZ3YtmtkBss6A2HY6BnJH4N/4Ku97Ri/SF8sNWE2225WJw==}
+    dev: false
 
   /p-limit@5.0.0:
     resolution: {integrity: sha512-/Eaoq+QyLSiXQ4lyYV23f14mZRQcXnxfHrN0vCai+ak9G0pp9iEQukIIZq5NccEvwRB8PUnZT0KsOoDCINS1qQ==}
