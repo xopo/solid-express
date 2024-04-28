@@ -9,6 +9,9 @@ exports.up = function(knex) {
         table.string('url', 255).notNullable();
         table.string('status', 20);
         table.boolean('acknowledge').defaultTo(false);
+        table.integer('user_id').notNullable().defaultTo(1);
+        table.foreign('user_id').references('Users.id');
+        table.integer('retry').defaultTo(0);
     })
 };
 

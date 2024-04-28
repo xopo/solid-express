@@ -1,5 +1,5 @@
 import { Payload, Thumbnail } from "youtube-dl-exec";
-import { WaitingMedia, dbAddNewDescription, dbAddNewFile, dbFileExists, dbGetDownloadingMedia, dbGetFirstWaitingMedia, dbGetNewWaitingMedia, dbUpdateWaitingMediaId, dbUpdateWaitingMediaStatus, descriptionInDb } from "../db/queries";
+import { WaitingMedia, dbAddMediaToUser, dbAddNewDescription, dbAddNewFile, dbFileExists, dbGetDownloadingMedia, dbGetFirstWaitingMedia, dbGetNewWaitingMedia, dbUpdateWaitingMediaId, dbUpdateWaitingMediaStatus, descriptionInDb } from "../db/queries";
 import { STATIC_FILES, downloadFile, downloadMediaData } from "../routes/apihelper";
 import { Dirent, createWriteStream, existsSync, readdirSync, renameSync, unlinkSync, writeFileSync } from "fs";
 import axios from 'axios';
@@ -13,7 +13,8 @@ import { cutAndSave, toLargeThumbnail } from "../routes/imageHelper";
  * For each get details from media and set in db
  * Return null when nothing to do
  */
-export async function grabWaiting() {
+export async function grabWaiting(userId?: number) {
+    console.log('[cron job], grabWaiting');
     const newMedia = await dbGetNewWaitingMedia(2);
     if (newMedia?.length) {
         for(let media of newMedia) {
@@ -31,7 +32,8 @@ export async function grabWaiting() {
                     await grabImage(media, details, title)
                 }
                 if (!(await dbFileExists(details.id))) {
-                    await dbAddNewFile(details.id, title);
+                    const file = await dbAddNewFile(details.id, title);
+                    await dbAddMediaToUser(file[0], userId || media.user_id);
                     await dbUpdateWaitingMediaStatus(media.id, 'details')
                 }
                 if (!(await descriptionInDb(details.id))) {
@@ -55,6 +57,7 @@ export const newPathFileName = (title: string) => join(STATIC_FILES, `${title}`)
  * Set to local file
  */
 export async function grabMedia() {
+    console.log('[cron job], grabMedia');
     const downloadInProgress = await dbGetDownloadingMedia();
     if (downloadInProgress) return;
 
@@ -70,6 +73,7 @@ const youtubeQualityOrder = ['mp3', 'mp2', 'mq1']
 export const getExtension = (url: string) => url.split('?')[0].split('.').reverse()[0];
 
 export async function grabImage(media: WaitingMedia, details: Payload, title: string) {
+    console.log('----- grab image from media:', media.media_id, media.url, title)
     const alternativeImgUrl = details.thumbnail || details.thumbnails[0].url;
     // works for youtube.com and youtu.be urls
     if (media.url.includes('youtu') && details.thumbnails.length) {
@@ -92,7 +96,7 @@ export async function grabImage(media: WaitingMedia, details: Payload, title: st
             toLargeThumbnail(alternativeImgUrl, newPathFileName(title))
         }
     
-    } else if (media.url.includes('rumble')) {
+    } else {
         const newPathLarge = newPathFileName(title);
         toLargeThumbnail(details.thumbnail, newPathLarge);
     }

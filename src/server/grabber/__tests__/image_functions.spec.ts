@@ -19,15 +19,13 @@ describe('Working with files on disk', () => {
     })
     describe('Prepare path for files with newPathFileName', () => {
         it('Returns correct file when all parameters are set', () => {
-            const location = '/Users/dratiu/Desktop/media/';
+            const location = '/Users/opo/Desktop/tmpfiles/media/';
             const listOfParams = [
-                {title: 'some_bibi_bo', extension: 'jpg', small: false, expect: 'some_bibi_bo.jpg'},
-                {title: 'some_bibi_bo', extension: 'webp', small: false, expect: 'some_bibi_bo.webp'},
-                {title: 'some_bibi_bo', extension: 'jpg', small: true, expect: 'some_bibi_bo_small.jpg'},
-                {title: 'some_bibi_bo', extension: 'jpg', small: true, expect: 'some_bibi_bo_small.jpg'}
+                {title: 'some_bibi_bo', expect: 'some_bibi_bo.webp'},
+                {title: 'some_bibi_bo', expect: 'some_bibi_bo.webp'},
             ]
             for(let test of listOfParams) {
-                expect(newPathFileName(test.title, test.extension, test.small)).toBe(location + test.expect);
+                expect(newPathFileName(test.title)).toBe(location + test.expect);
             }
         })
     })

@@ -31,47 +31,55 @@ body {
   font-size: 16px;
 }
 
+body.modal-open {
+  overflow: hidden;
+}
+
 body * {
   box-sizing: border-box;
 }
 
-input, button, textarea {
-    font-size: 16px;
+input,
+button,
+textarea {
+  font-size: 16px;
 }
 
 .error {
-    color: red;
+  color: red;
 }
 
 label + input {
   margin-top: 1em;
 }
 input.error {
-    border-color: red;
+  border-color: red;
 }
 
 button:disabled {
   color: #eee;
 }
 
-button:disabled:hover, button:disabled:active {
+button:disabled:hover,
+button:disabled:active {
   border-color: red;
 }
 
-
-
-button, input, textarea {
+button,
+input,
+textarea {
   padding: 0;
   margin: 0;
   height: unset;
 }
 
-input, textarea {
-    height: 40px;
-    border-radius: 9px;
-    padding-left: 1em;
-    border: 1px solid #aaaaaa4a;
-    outline: none;
+input,
+textarea {
+  height: 40px;
+  border-radius: 9px;
+  padding-left: 1em;
+  border: 1px solid #aaaaaa4a;
+  outline: none;
 }
 
 h1 {
@@ -98,13 +106,19 @@ button:hover {
   border-color: #646cff;
 }
 
-
 .transparent {
   background-color: transparent;
 }
-.transparent:hover, .transparent:active, .transparent:focus-visible {
-    border: none;
-    outline: none;
+
+button.transparent {
+  padding: 0;
+}
+
+.transparent:hover,
+.transparent:active,
+.transparent:focus-visible {
+  border: none;
+  outline: none;
 }
 
 @media (prefers-color-scheme: light) {
@@ -120,18 +134,17 @@ button:hover {
   }
 }
 
-
 /* mp3 style generic */
 button.icon {
-    background: transparent;
-    outline: none;
-    border: none;
+  background: transparent;
+  outline: none;
+  border: none;
 }
 
-button.icon:hover, button.icon:active {
-    background: transparent;
-    outline: none;
-    border: none;
+button.icon:hover,
+button.icon:active {
+  outline: none;
+  border: none;
 }
 
 .row {

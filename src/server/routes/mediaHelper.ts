@@ -1,34 +1,49 @@
-import url from 'node:url';
-import { parse } from 'node:querystring';
+import {URL} from 'node:url';
 
-export type Platform = 'youtube'|'rumble';
+export type Platform = 'youtube'|'rumble'| 'facebook';
 export type MediaType = {id: string, type: Platform}
 
 export const extractMediaMetaFromUrl = (mediaUrl: string): MediaType => {
-    if (mediaUrl.includes('youtu')) {
-        const id = extractYoutubeId(mediaUrl)
+    const urlObj = new URL(mediaUrl);
+    const {hostname} = urlObj;
+    if (hostname.includes('youtu')) {
+        const id = extractYoutubeId(urlObj)
         return {type: 'youtube', id}
     }
-    if (mediaUrl.includes('rumble')) {
-        return { type: 'rumble', id: extractRumbleId(mediaUrl)};
+    if (hostname.includes('rumble')) {
+        return { type: 'rumble', id: extractRumbleId(urlObj)};
     }
-    throw new Error(`[extractMediaMetaFromUrl] - cannot extract meta from url ${url}`); 
+    if (hostname.includes('facebook') || hostname.includes('fb.watch')) {
+        return { type: 'facebook', id: extractFacebookId(urlObj)};
+    }
+    throw new Error(`[extractMediaMetaFromUrl] - cannot extract meta from url ${mediaUrl}`); 
 }
 
 
-const extractYoutubeId = (mediaUrl: string) => {
-    if (mediaUrl.includes('.com')) {
-        const qryString = url.parse(mediaUrl).query;
-        if (qryString) {
-            const {v} = parse(qryString) as {v: string};
-            return v;
-        }
-    } else if (mediaUrl.includes('.be')) {
-        return mediaUrl.split('/').reverse()[0].split('?')[0]
+const extractYoutubeId = (url: URL) => {
+    const {hostname, pathname, searchParams} = url;
+    if (hostname.includes('.com')) {
+        return searchParams.get('v') as string;
+    } else if (hostname.includes('.be')) {
+        return pathname.split('/').reverse()[0].split('?')[0]
     }
     throw new Error('[extractYoutubeId] - cannot extract from url: ' + url)
 }
 
-const extractRumbleId = (mediaUrl: string) => {
-    return mediaUrl.split('rumble.com/')[1].split('-')[0]
+const extractRumbleId = (url: URL) => {
+    return url.href.split('rumble.com/')[1].split('-')[0]
+}
+
+const extractFacebookId = (url: URL): string => {
+    if (url.hostname.includes('facebook.com')) { 
+         if (url.searchParams && url.searchParams.get('v')) {
+            return url.searchParams.get('v') as string;
+        } else if (url.pathname.includes('videos')) {
+            return url.pathname.split('videos/')[1].split('/')[0];
+        }
+    }
+    if (url.hostname.includes('fb.watch')) {
+        return url.href.split('fb.watch/')[1].split('/')[0];
+    }
+    throw new Error('[extractFacebookId] - cannot extract from url: ' + url)
 }

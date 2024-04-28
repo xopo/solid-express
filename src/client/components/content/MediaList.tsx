@@ -1,16 +1,19 @@
-import { For, createSignal, onCleanup } from "solid-js";
+import { For, createEffect, createSignal, onCleanup, onMount } from "solid-js";
 import MediaEntry from "./Entry";
-
-
-import './media_list.scss';
 import MediaPlayer, { Direction } from "./player/Player";
 import { EntryData, useMp3Context } from "../../context/appContext";
-import { effect } from "solid-js/web";
+import { createIntersectionObserver } from "@solid-primitives/intersection-observer";
+
+import './media_list.scss';
 
 export default function MediaList() {
     const [pick, setNewEntry] = createSignal<EntryData|undefined>();
+    const [visible, setVisible] = createSignal<string[]>([]);
     const [activeDetail, setActiveDetail] = createSignal<EntryData|undefined>();
     const {content, serverMessage, refetchContent, cleanup} = useMp3Context();
+    
+
+    const [targets, setTargets] = createSignal<Element[]>([]);
 
     const toggleActive = (entry: EntryData) => {
         if (activeDetail()?.name === entry.name) {
@@ -20,7 +23,27 @@ export default function MediaList() {
         }
     }
 
+    onMount(() => {
+        const {innerWidth, innerHeight} = window;
+        console.log('--here ', innerHeight, innerWidth)
+    });
+
+    createIntersectionObserver(targets, (entries, observer) => {
+        entries.forEach(e => {
+            if (e.isIntersecting) {
+                let pic = e.target.getElementsByTagName('picture')[0];
+                pic.getElementsByTagName('source')[0].srcset = pic.dataset.url!;
+                pic.getElementsByTagName('img')[0].src = pic.dataset.url!;
+                observer.unobserve(e.target);
+            }
+        })
+      });
+
     function changeDirection(flow: Direction) {
+        if (flow === 'stop') {
+            setNewEntry(undefined);
+            return;
+        }
         const playIndex = content()!.findIndex(entry => entry.media_id === pick()?.media_id)
         if (playIndex === -1) {
             return;
@@ -36,7 +59,7 @@ export default function MediaList() {
         setNewEntry(content()![newIndex]);
     }
 
-    effect(() => {
+    createEffect(() => {
         if (serverMessage()?.includes('refresh content')) {
             console.log(serverMessage(), 'refreshing content')
             refetchContent();
@@ -44,11 +67,15 @@ export default function MediaList() {
     })
 
     onCleanup(cleanup);
-    
+
+    createEffect(() => {
+        console.log('visible targets', visible())
+    })
+
     return(
         <>
             <MediaPlayer pick={pick} action={changeDirection}/>
-            <ul class='media-list'>
+            <ul class='media-list' >
                 <For each={content()}>
                     {entry => (
                         <MediaEntry
@@ -56,6 +83,8 @@ export default function MediaList() {
                             entry={entry}
                             active={activeDetail}
                             setActive={toggleActive}
+                            addElement={setTargets}
+                            visible={visible}
                         />
                     )}
                 </For>

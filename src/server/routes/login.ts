@@ -24,7 +24,6 @@ loginRoute.post<any, any, any, LoginBody>(
         req.session.role = undefined;
         return res.status(400).json({error: 'bad user/pass'})
     }
-    // console.log({user})
     req.session.user = {id: user.id, name: user.name};
     req.session.authorized = true;
     req.session.role =  await dbGetUserRoles(user.id)

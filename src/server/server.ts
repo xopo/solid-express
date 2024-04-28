@@ -46,7 +46,6 @@ app.use(
 //     resave: true,
 //     saveUninitialized: false,
 // }));
-console.log({base, STATIC_FILES})
 app.use(`${base}media/`, express.static(STATIC_FILES))
 
 // app.use(`${base}api/content`, content);

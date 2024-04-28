@@ -6,7 +6,7 @@ export function getMediumFromUrl(url: string) {
 
     if (url.includes('rumble')) return 'rumble';
 
-    if (url.includes('faceb')) return 'facebook';
+    if (url.includes('faceb') || url.includes('fb.watch')) return 'facebook';
 
     return 'not found';
 }

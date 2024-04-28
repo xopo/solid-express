@@ -62,7 +62,6 @@ export async function downloadFile(url: string, media_id: string) {
             //@ts-ignore
             paths: mediaLocation,
         })
-        console.log('download completed for file', url, 'and sent to', mediaLocation)
         await renameFile(media_id);
         await dbUpdateFileStatus(media_id, true);
         return !!mp3File;
@@ -86,11 +85,8 @@ export async function renameFile(media_id: string) {
                             renameOld(entity.name, `${name}.mp3`);
                             dbUpdateWaitingMediaStatus(id, 'done');
                         } else {
-                            // name = websafe name, 
-                            console.log('unlink entity', entity.name)
                             unlink(`${entity.path}${entity.name}`, (err) =>  {
                                 if (err) throw new Error(err.message);
-                                console.log('File removed', entity.name)
                             });
                         }
                     }

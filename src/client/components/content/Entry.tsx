@@ -1,19 +1,22 @@
-import { EntryData } from "../../App";
+
 import { date2String } from "../../helpers/time";
 import { getMediumFromUrl } from "../../helpers/utils";
 import SvgIcon from "../common/SvgIcon";
-import './entry.scss';
 import { Accessor, Show } from "solid-js";
 import ActionMenu from "./player/action/ActionMenu";
+import { EntryData } from "../../context/appContext";
+import './entry.scss';
 
 type MediaEntryProps = {
     entry: EntryData;
     changeMedia: (entry: EntryData) => void;
     active: Accessor<EntryData | undefined>;
     setActive: (entry: EntryData) => void;
+    addElement: (el: any) => void;
+    visible: Accessor<string[]>;
 }
 
-export default function MediaEntry({entry, changeMedia, active, setActive}: MediaEntryProps) {
+export default function MediaEntry({entry, changeMedia, active, setActive, addElement, visible}: MediaEntryProps) {
     const medium = getMediumFromUrl(entry.url);
     
     const showActionMenu = (ev: MouseEvent) => {
@@ -21,17 +24,19 @@ export default function MediaEntry({entry, changeMedia, active, setActive}: Medi
         ev.stopImmediatePropagation();
         setActive(entry)
     }
+
+    const show = visible().includes(entry.media_id);
     
     return (
-        <li class='entry'>
+        <li class='entry' data-id={entry.media_id} ref={el => addElement((prev: any[]) => [...prev, el])}>
             <div class="image">
                 <div class="meta">
                     <div>{entry.duration_string}</div>
                     <div><a href={entry.url} target="__blank">Link to video</a></div>
                 </div>
-                <picture>
-                    <source srcset={`/media/${entry.name}.webp`} />
-                    <img  onclick={()=>changeMedia(entry)} width='350' src={entry.thumbnail}/>
+                <picture onclick={()=>changeMedia(entry)} data-url={`/media/${entry.name}.webp`}>
+                    <source  srcset={show ? `/media/${entry.name}.webp`: '#'} />
+                    <img width='350' src={show ? entry.thumbnail : '#'}/>
                 </picture>
             </div>
             <div class="title" onclick={()=>changeMedia(entry)}>

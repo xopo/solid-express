@@ -4,8 +4,10 @@ import ViteExpress from "vite-express";
 
 import { port } from '../../vite.config.mts';
 import { grabMedia, grabWaiting } from './grabber/grab';
+import { now } from './helper';
 
-nodeCron.schedule('0 * * * * *', () => {
+nodeCron.schedule('0,30 * * * * *', () => {
+    console.log('[cron job]: ', now());
     grabWaiting();
     grabMedia();
 })

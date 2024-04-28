@@ -20,8 +20,8 @@ export default function ActionMenu({entry}: ActionMenuProps) {
     }
     
     async function onDelete(ev: MouseEvent) {
-        await apiDeleteMedia(entry.media_id);
         ev.stopPropagation();
+        await apiDeleteMedia(entry.media_id);
         refetchContent();
     }
 

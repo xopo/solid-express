@@ -1,7 +1,7 @@
 import { Accessor, Show, createEffect, createSignal, onCleanup, onMount } from "solid-js";
-import { effect } from "solid-js/web";
 import SvgIcon from "../../common/SvgIcon";
 import { EntryData } from "../../../context/appContext";
+import { getLocalStoragePreferences,  removeFromHistory,  setLocalStorageMedia,  setLocalStorageVolume } from "../../../helpers/storage";
 import './player.scss';
 
 type PlayerPops = {
@@ -9,75 +9,121 @@ type PlayerPops = {
     action: (direction: Direction) => void;
 }
 
-export type Direction = 'next'|'prev';
+const delay = (ms: 100) => new Promise(resolve => setTimeout(resolve, ms));
+
+export type Direction = 'next' | 'prev' | 'stop';
 
 export type PlayerStatus = 'play' | 'pause';
 
-const initialAudioControl: Record<string, number> = {
-    total: 100,
-    cursor: 0,
-    step: .5,
-};
+const { volume, history } = getLocalStoragePreferences();
+
+// duration ex [1:34:32 - 1hour 34 min 32 sec]
+const durationFromTxt = (duration?: string): number => {
+   if (typeof duration === 'string') {
+        const expanded = duration.split(':').reverse();
+        return Number(expanded[0]) + Number(expanded[1] || 0) * 60 + Number(expanded[2] || 0) * 3600;
+    }
+    console.log('bad duration string');
+    return 100;
+}
 
 export default function MediaPlayer({pick, action}: PlayerPops) {
     const [playing, setPlaying] = createSignal<EntryData>();
     const [audioStatus, setAudioStatus] = createSignal<PlayerStatus>();
+    const [duration, setDuration] = createSignal(100);
     const [time, setTime] = createSignal({actual: 0, total: 0});
     const [changingMedia, setChangingMedia] = createSignal(false);
     const [lightTheme, toggleLightTheme] = createSignal(true);
-    const [controlAudio, setControlAudio] = createSignal({...initialAudioControl});
+    const media = history.find(item => item.id === pick()?.media_id);
+    // audio cursor
+    const [cursor, setCursor] = createSignal<number>(media?.cursor || 0);
     const [speed, setSpeed] = createSignal(1);
-    const [mute, setMute] = createSignal(false)
+    const [mute, setMute] = createSignal( volume < 0.5 ? true : false);
 
     let interval: number;
 
+    const startInterval = () => window.setInterval(() => {
+        if (playRef && !playRef.paused) {
+            setCursor((playRef.currentTime * 100) / playRef.duration);
+            setLocalStorageMedia(pick()!.media_id, cursor());
+        }
+    }, 1000)
+
     onMount(() => {
-        interval = window.setInterval(() => {
-            if (playRef) {
-                setTime({
-                    actual: playRef.currentTime,
-                    total: playRef.duration
-                })
-                setControlAudio({...controlAudio, cursor: (playRef.currentTime * 100 / playRef.duration)})
-                // console.log('-- curent time', playRef.currentTime, duration)
-            }
-        }, 250);
+        if (!interval) {
+            interval = startInterval();
+        }
+        
     })
 
     onCleanup(() => {
         clearInterval(interval);
+        playRef!.pause();
+        console.info('pause')
     })
 
     let playRef: HTMLAudioElement | undefined = undefined;
 
-    effect(() => {
+    createEffect(async () => {
         if (playRef?.played) {
-            console.log(playRef?.played)
+            playRef?.load();
             setChangingMedia(true);
         }
         setPlaying(pick());
-        playRef?.load();
-        playRef?.play().finally(() =>{
-            setAudioStatus('play')
-            toggleMute(true)
-            setTime({
-                actual: 1,
-                total: playRef!.duration
-            })
-            setTimeout(() => {
-                setChangingMedia(false);
-            }, 500);
-        });
+        setDuration(durationFromTxt(pick()?.duration_string))
+        let retry = 20;
+        while (retry-- > 0) {
+            await delay(100);
+            if (playRef?.readyState === 4) {
+                retry = 0;
+                playRef?.play()
+                    .finally(() => {
+                        if (!pick()) return;
+
+                        const playHistory = getLocalStoragePreferences().history.find(item => item.id === pick()!.media_id);
+                        if (playHistory && !isNaN(playRef!.duration)) {
+                            playRef!.currentTime = playRef!.duration / 100 * playHistory.cursor;
+                            setCursor(playHistory.cursor);
+                        }
+                        setAudioStatus('play')
+                        toggleMute(true)
+                        setTime({
+                            actual: 1,
+                            total: playRef!.duration
+                        })
+                        setTimeout(() => {
+                            setChangingMedia(false);
+                        }, 300);
+                    });
+                }
+            }
     })
 
+    async function onEnded() {
+        action('next');
+        setAudioStatus('pause');
+        removeFromHistory(pick()!.media_id);
+    }
+
     async function togglePlay() {
-        playRef?.pause()
-        if (audioStatus() === 'play') {
+        if (playRef) {
+            playRef.pause()
+            if (audioStatus() === 'play') {
+                playRef.pause();
+                setAudioStatus('pause');
+            } else {
+                await playRef.play();
+                setAudioStatus('play');
+            }
+        }
+    }
+
+    async function onStop() {
+        if (playRef)    {   
             playRef?.pause();
-            setAudioStatus('pause')
-        } else {
-            await playRef?.play();
-            setAudioStatus('play')
+            playRef!.src = '';
+            action('stop');
+            setPlaying(undefined);
         }
     }
 
@@ -87,8 +133,16 @@ export default function MediaPlayer({pick, action}: PlayerPops) {
         playRef!.playbackRate = newSpeed;
     }
 
+    let volumeTimeout: number;
     function onChangeVolume(val: string) {
-        playRef!.volume = Number(val) / 100;
+        const volumeVal = Number(val)
+        playRef!.volume = volumeVal / 100;
+        if (volumeTimeout) {
+            window.clearTimeout(volumeTimeout);
+        }
+        volumeTimeout = window.setTimeout(() => {
+            setLocalStorageVolume(volumeVal);
+        }, 200);
     }
 
     function toggleMute(unmute = false) {
@@ -119,25 +173,21 @@ export default function MediaPlayer({pick, action}: PlayerPops) {
     }
 
     const updateControlPosition = (newPosition: string) => {
+        const numberPosition = Number(newPosition);
+        setCursor(numberPosition);
+        setLocalStorageMedia(pick()!.media_id, numberPosition);
         if (playRef) {
-            playRef.currentTime = Number(newPosition) * playRef.duration / 100;
+            playRef.currentTime = numberPosition / 100 * duration();
         }
-        setControlAudio(prev => ({...prev, cursor: Number(newPosition)}));
+        
     }
-    let {total, step, cursor} = controlAudio();
 
-    createEffect(() => {
-        ({total, step, cursor} = controlAudio());
-    })
-    
     return (
         <>
             <Show when={playing()?.name}>
                 <audio
                     class="hidden"
-                    onPlay={() => setAudioStatus('play')}
-                    onPause={() => setAudioStatus('pause')}
-                    onChange={() => playRef?.pause() && setAudioStatus('pause')}
+                    onEnded={() => onEnded()}
                     ref={el => playRef = el}
                     controls
                 >
@@ -162,17 +212,17 @@ export default function MediaPlayer({pick, action}: PlayerPops) {
                             <button class='transparent next' onclick={()=>action('next')} disabled={changingMedia()}>
                                 <SvgIcon name="circle_next" />
                             </button>
-                            <button class="transparent" onClick={() => setPlaying(undefined)}>
+                            <button class="transparent" onClick={onStop}>
                                 <SvgIcon name='circle_stop' />
                             </button>
                         </div>
                         <p class="speed" onclick={onSetSpeed}>{speed()}x</p>
-                        <button type='button' class='transparent icon' onclick={() => toggleMute()}>
+                        <button type='button' class='transparent icon mute' onclick={() => toggleMute()}>
                             <Show when={mute() === true} fallback={<SvgIcon name='volume_up'/>}>
                                 <SvgIcon name='volume_mute' />
                             </Show>
                         </button>
-                        <input type="range" min='0' max='100' onChange={e => onChangeVolume(e.target.value)}/>
+                        <input type="range" min='0' max='100' value={volume} onChange={e => onChangeVolume(e.target.value)}/>
                     </div>
                     <div class="track">
                         <div class="duration">{formatTime(time())}</div>
@@ -180,9 +230,9 @@ export default function MediaPlayer({pick, action}: PlayerPops) {
                             type='range'
                             class='audio-controller'
                             min={0}
-                            max={total}
-                            step={step}
-                            value={controlAudio().cursor}
+                            max={100}
+                            step={0.2}
+                            value={cursor()}
                             onChange={ev => updateControlPosition(ev.target.value)}
                         />
                     </div>

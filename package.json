@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@solid-primitives/intersection-observer": "^2.1.6",
     "@solidjs/router": "^0.12.4",
     "axios": "^1.6.8",
     "bcrypt": "^5.1.1",

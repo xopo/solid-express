@@ -1,3 +1,13 @@
-svg path {
-    fill: #aaa;
+svg {
+    path {
+        fill: #aaa;
+    }
+    &.facebook {
+        path:first-child {
+            fill: #0866FF !important;
+        }
+        path:last-child {
+            fill: #fff !important;
+        }
+    }
 }

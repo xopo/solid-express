@@ -45,7 +45,7 @@ describe('/api/content', () => {
             })
         })
 
-        describe.only('given the user post a correct url', () => {
+        describe('given the user post a correct url', () => {
             it('will add the media to db', async () => {
                 const result = await request.post('/api/content/add')
                     // https://youtu.be/30vF9gTTwvU?feature=shared
@@ -53,9 +53,6 @@ describe('/api/content', () => {
                     .send({url: 'https://www.youtube.com/watch?v=egkG6ynXs-0'})
                     .set('cookie', loginResponse.header['set-cookie']);
                 expect(result.statusCode).toBe(200)
-            })
-            it('will return media data if already in db', async () => {
-                const result = 4;
             })
         })
     })
