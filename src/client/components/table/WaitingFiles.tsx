@@ -16,22 +16,19 @@ import "./waiting-files.scss";
 import SvgIcon from "../common/SvgIcon";
 import { useMp3Context } from "../../context/appContext";
 import { effect } from "solid-js/web";
+import { NewFile } from "../media/AddMedia";
+import BASE_URL from "../../const";
 
 type Props = {
     hide: () => void;
-    waiting: Accessor<string>;
+    newFiles: Accessor<NewFile[]>;
+    resetNewFiles: () => void;
 };
 
-export default function WaitingFiles({ hide, waiting }: Props) {
+export default function WaitingFiles({ hide, newFiles, resetNewFiles }: Props) {
     const { serverMessage } = useMp3Context();
     const [lastMessage, setLastMessage] = createSignal("");
-    const [waitingFiles, setWaitingFiles] = createSignal<string[]>([]);
     const [files, { refetch: refetchWaiting }] = createResource(apiGetWaiting);
-
-    effect(() => {
-        console.log("waiting files", waiting());
-        setWaitingFiles((prev: string[]) => [...new Set([...prev, waiting()])]);
-    });
 
     createEffect(() => {
         if (serverMessage() !== lastMessage()) {
@@ -56,10 +53,25 @@ export default function WaitingFiles({ hide, waiting }: Props) {
 
     effect(() => {
         console.log(" get files", files());
+        if (files() !== undefined) {
+            console.log("reset new files");
+            resetNewFiles();
+        }
     });
 
     return (
         <ul class="download">
+            <For each={newFiles()}>
+                {(file) => (
+                    <div class="flex">
+                        <div>{file.url}</div>
+                        <div>✅</div>
+                        <div>
+                            <img width="40" src={`${BASE_URL}spinner.gif`} />
+                        </div>
+                    </div>
+                )}
+            </For>
             <For each={files()?.data}>
                 {(file) => <WaitingSkeleton file={file as Waiting} />}
             </For>

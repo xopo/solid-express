@@ -1,8 +1,7 @@
-@import '../../utils.scss';
+@import "../../utils.scss";
 
 .entry {
     font-size: 12px;
-    padding: 1em;
     position: relative;
     @include mobile {
         padding: 0;
@@ -80,19 +79,21 @@
         color: #777;
         a {
             color: inherit;
-            &:hover, &:active {
+            &:hover,
+            &:active {
                 color: blue;
             }
         }
     }
-    &:hover, &.active {
-        outline: 1px solid #aaaaaa30;
+    &:hover,
+    &.active {
         border-radius: 5px;
-        box-shadow: 0 0 9px #aaa;
-        .text, p {
+        box-shadow: 0 0 9px #aaaaaa29;
+        .text,
+        p {
             color: #555;
         }
-        .details{
+        .details {
             color: #333;
         }
         .more_vert path {

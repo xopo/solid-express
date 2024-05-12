@@ -1,102 +1,157 @@
-import {Router} from 'express';
-import { isAuthorized } from './auth';
-import { dbAddMediaToUser, dbCheckFileExists, dbCheckWaitingMedia, dbCountUsersWithMedia, dbCreateDummyWaitingMedia, 
-    dbGetDetailsByMediaId, dbGetUserContent, dbGetUserRoles, dbGetWaitingMedia, dbInsertWaitingMedia,
-    dbRemoveDetailsByMediaId, dbRemoveFileByMediaId, dbRemoveMediaFromUser, dbUpdateWaitingMediaStatusByMediaId } from '../db/queries';
-import validate from './validate';
-import { uriSchema } from '../../common/validate/schema';
-import { extractMediaMetaFromUrl } from './mediaHelper';
-import { grabWaiting, removeFilesIfExists } from '../grabber/grab';
+import { Router } from "express";
+import { isAuthorized } from "./auth";
+import {
+    dbAddMediaToUser,
+    dbCheckFileExists,
+    dbCheckWaitingMedia,
+    dbCountUsersWithMedia,
+    dbCreateDummyWaitingMedia,
+    dbGetDetailsByMediaId,
+    dbGetUserContent,
+    dbGetUserContentByTags,
+    dbGetUserRoles,
+    dbGetWaitingMedia,
+    dbInsertWaitingMedia,
+    dbRemoveDetailsByMediaId,
+    dbRemoveFileByMediaId,
+    dbRemoveMediaFromUser,
+    dbUpdateWaitingMediaStatusByMediaId,
+} from "../db/queries";
+import validate from "./validate";
+import { uriSchema } from "../../common/validate/schema";
+import { extractMediaMetaFromUrl } from "./mediaHelper";
+import { grabWaiting, removeFilesIfExists } from "../grabber/grab";
 
 const contentRoute = Router();
 
-contentRoute.get('/', isAuthorized, async (req, res) => {
-    const {id} = req.session.user;
-    const content = id 
-        ? await dbGetUserContent(req.session.user.id)
-        : [];
-    res.json({success: true, data: content})
-})
+contentRoute.get("/", isAuthorized, async (req, res) => {
+    const { id } = req.session.user;
+    const content = id ? await dbGetUserContent(req.session.user.id) : [];
+    res.json({ success: true, data: content });
+});
 
-contentRoute.get('/roles', isAuthorized, async (req, res) => {
-    const {user} = req.session;
-    const roles = await dbGetUserRoles(user.id)
-    res.json({success: true, data: roles})
-})
+contentRoute.post<any, any, any, { tags: string }>(
+    "/",
+    isAuthorized,
+    async (req, res) => {
+        const { tags } = req.body;
+        const cleanTags = tags.trim().replace(/[^a-zA-Z\s0-9]/gi, "");
+        const { id } = req.session.user;
+        const content = id
+            ? await dbGetUserContentByTags(req.session.user.id, cleanTags)
+            : [];
+        res.json({ success: true, data: content });
+    }
+);
 
-contentRoute.post<any, any, any, {url: string}>
-('/add', isAuthorized, validate(uriSchema), async (req, res) => {
-    const {url} = req.body; 
-    try {
-        const {id, type} = extractMediaMetaFromUrl(url);
-        if (!id || !type) {
-            res.status(400).json({error: 'cannot get file data'}) 
-            return;
-        }
-        const fileInDb = await dbCheckFileExists(id, url);
-        if (!fileInDb) {
-            const fileWaiting = await dbCheckWaitingMedia(id, url);
-            if (!fileWaiting) {
-                const result = await dbInsertWaitingMedia(id, url, req.session.user.id);
-                if (result) {
-                    grabWaiting(req.session.user.id);
-                }
+contentRoute.get("/roles", isAuthorized, async (req, res) => {
+    const { user } = req.session;
+    const roles = await dbGetUserRoles(user.id);
+    res.json({ success: true, data: roles });
+});
+
+contentRoute.post<any, any, any, { url: string }>(
+    "/add",
+    isAuthorized,
+    validate(uriSchema),
+    async (req, res) => {
+        const { url } = req.body;
+        try {
+            const { id, type } = extractMediaMetaFromUrl(url);
+            if (!id || !type) {
+                res.status(400).json({ error: "cannot get file data" });
+                return;
             }
-            const status = fileWaiting && fileWaiting.status
-                ? fileWaiting.status
-                : 'new';
-            
-            res.json({success: true, data: { waiting: {id, url, status}}})
-            return;
-        } else {
-            await dbAddMediaToUser(fileInDb.id, req.session.user.id);
-            await dbCreateDummyWaitingMedia(fileInDb.media_id, url, 'dummy')
-        }
-        res.json({success: true, data: fileInDb})
-    } catch (e) {
-        res.status(400).json({error: e instanceof Error ? e.message : 'Problem with adding new media'})
-    }
-})
+            const fileInDb = await dbCheckFileExists(id, url);
+            if (!fileInDb) {
+                const fileWaiting = await dbCheckWaitingMedia(id, url);
+                if (!fileWaiting) {
+                    const result = await dbInsertWaitingMedia(
+                        id,
+                        url,
+                        req.session.user.id
+                    );
+                    if (result) {
+                        grabWaiting(req.session.user.id);
+                    }
+                }
+                const status =
+                    fileWaiting && fileWaiting.status
+                        ? fileWaiting.status
+                        : "new";
 
-contentRoute.post('/getWaiting', isAuthorized, async (req, res) => {
+                res.json({
+                    success: true,
+                    data: { waiting: { id, url, status } },
+                });
+                return;
+            } else {
+                await dbAddMediaToUser(fileInDb.id, req.session.user.id);
+                await dbCreateDummyWaitingMedia(
+                    fileInDb.media_id,
+                    url,
+                    "dummy"
+                );
+            }
+            res.json({ success: true, data: fileInDb });
+        } catch (e) {
+            res.status(400).json({
+                error:
+                    e instanceof Error
+                        ? e.message
+                        : "Problem with adding new media",
+            });
+        }
+    }
+);
+
+contentRoute.post("/getWaiting", isAuthorized, async (req, res) => {
     const data = await dbGetWaitingMedia(req.session.user.id);
-    res.json({success: true, data})
-})
+    res.json({ success: true, data });
+});
 
-contentRoute.post<any, any, any, {media_id: string}>
-('/delete', isAuthorized, async(req, res) => {
-    const {media_id} = req.body;
-    if (!media_id) {
-        res.status(400).json({error: 'media_id is required'});
-    }
-    const count = await dbCountUsersWithMedia(media_id);
-    await dbRemoveMediaFromUser(media_id, req.session.user.id); 
-    if (count <= 1) {
-        await dbUpdateWaitingMediaStatusByMediaId(media_id, 'delete');
-        await dbRemoveDetailsByMediaId(media_id);
-        await dbRemoveFileByMediaId(media_id); 
-        await removeFilesIfExists(media_id);
-    }
-    res.json({success: true})
-})
-
-contentRoute.post<any, any, any, {media_id: string, existing: boolean}>
-('/reset', isAuthorized, async(req, res) => {
-    const {media_id, existing} = req.body;
-    if (!existing) {
-        await dbUpdateWaitingMediaStatusByMediaId(media_id, null);
-    } else {
-        const media = await dbGetDetailsByMediaId(media_id);
-        await dbRemoveDetailsByMediaId(media_id); 
-        await dbRemoveFileByMediaId(media_id)
-        await removeFilesIfExists(media_id);
-        if (media) {
-            await dbInsertWaitingMedia(media_id, media.url, req.session.user.id);
+contentRoute.post<any, any, any, { media_id: string }>(
+    "/delete",
+    isAuthorized,
+    async (req, res) => {
+        const { media_id } = req.body;
+        if (!media_id) {
+            res.status(400).json({ error: "media_id is required" });
         }
+        const count = await dbCountUsersWithMedia(media_id);
+        await dbRemoveMediaFromUser(media_id, req.session.user.id);
+        if (count <= 1) {
+            await dbUpdateWaitingMediaStatusByMediaId(media_id, "delete");
+            await dbRemoveDetailsByMediaId(media_id);
+            await dbRemoveFileByMediaId(media_id);
+            await removeFilesIfExists(media_id);
+        }
+        res.json({ success: true });
     }
-    res.json({success: true})
-})
+);
+
+contentRoute.post<any, any, any, { media_id: string; existing: boolean }>(
+    "/reset",
+    isAuthorized,
+    async (req, res) => {
+        const { media_id, existing } = req.body;
+        if (!existing) {
+            await dbUpdateWaitingMediaStatusByMediaId(media_id, null);
+        } else {
+            const media = await dbGetDetailsByMediaId(media_id);
+            await dbRemoveDetailsByMediaId(media_id);
+            await dbRemoveFileByMediaId(media_id);
+            await removeFilesIfExists(media_id);
+            if (media) {
+                await dbInsertWaitingMedia(
+                    media_id,
+                    media.url,
+                    req.session.user.id
+                );
+            }
+        }
+        res.json({ success: true });
+    }
+);
 
 export default contentRoute;
-
-
