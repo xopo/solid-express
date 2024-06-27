@@ -1,11 +1,11 @@
 import { Show, createSignal } from "solid-js";
 
 import { effect, Portal } from "solid-js/web";
-import { validateInputUrl } from "../../helpers/validate";
-import { apiSubmitNewMedia } from "../../api";
+import { validateInputUrl } from "../../validate";
+import { apiSubmitNewMedia } from "../../../api";
 import WaitingFiles from "../table/WaitingFiles";
 import "./add_media.scss";
-import BASE_URL from "../../const";
+import BASE_URL from "../../../const";
 
 export type NewFile = {
     id: string;
@@ -13,7 +13,6 @@ export type NewFile = {
     url: string;
 };
 
-/* Todo - do some shit */
 export default function AddMedia() {
     const [showModal, setShowModal] = createSignal(false);
     const [url, setUrl] = createSignal("");

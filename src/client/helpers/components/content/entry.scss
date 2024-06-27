@@ -1,0 +1,113 @@
+@import "../../utils.scss";
+
+.entry {
+    font-size: 12px;
+    position: relative;
+    @include mobile {
+        padding: 0;
+    }
+    img {
+        width: 100%;
+        object-fit: cover;
+        aspect-ratio: 16/9;
+        cursor: pointer;
+        border-radius: 5px;
+    }
+
+    p {
+        color: #aaa;
+        overflow: hidden;
+        -webkit-line-clamp: 3;
+        display: -webkit-box;
+        text-overflow: ellipsis;
+        -webkit-box-orient: vertical;
+    }
+    .image {
+        color: white;
+        position: relative;
+        .meta {
+            position: absolute;
+            padding: 10px 1em;
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            /* color: wheat; */
+            box-sizing: border-box;
+
+            > div {
+                background: #24232369;
+                border-radius: 5px;
+                padding: 0 5px;
+                a {
+                    color: inherit;
+                }
+            }
+        }
+    }
+    .title {
+        display: flex;
+        align-items: center;
+        padding: 12px 0 15px;
+        overflow: hidden;
+        cursor: pointer;
+        .text {
+            max-height: 28px;
+            width: 85%;
+            font-size: 14px;
+            color: #666;
+            -webkit-line-clamp: 2;
+            display: -webkit-box;
+            text-overflow: ellipsis;
+            -webkit-box-orient: vertical;
+        }
+        > svg {
+            margin-right: 10px;
+            path {
+                fill: black;
+            }
+            &.youtube > path {
+                fill: #920404;
+            }
+            &.rumble > path {
+                fill: #74cc1d;
+            }
+        }
+    }
+    .details {
+        display: flex;
+        justify-content: space-between;
+        color: #777;
+        a {
+            color: inherit;
+            &:hover,
+            &:active {
+                color: blue;
+            }
+        }
+    }
+    &:hover,
+    &.active {
+        border-radius: 5px;
+        box-shadow: 0 0 9px #aaaaaa29;
+        .text,
+        p {
+            color: #555;
+        }
+        .details {
+            color: #333;
+        }
+        .more_vert path {
+            fill: #333;
+        }
+    }
+    .action {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        h3 {
+            position: absolute;
+            margin-top: 40px;
+            right: 15px;
+        }
+    }
+}

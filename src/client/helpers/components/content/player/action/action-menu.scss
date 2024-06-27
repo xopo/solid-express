@@ -1,0 +1,21 @@
+.action-menu {
+    position: absolute;
+    width: 40px;
+    background-color: white;
+    right: 45px;
+    box-shadow: 1px 1px 5px #aaa;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    > button {
+        padding: 5px;
+        background-color: transparent;
+        border-radius: unset;
+        &:hover, &:active {
+            background-color: #f0f0f0;
+            svg path {
+                fill: #333;
+            }
+        }
+    }
+}

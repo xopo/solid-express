@@ -59,7 +59,7 @@ export const getContent = async (tags: string) => {
 };
 
 export async function apiLogin(name: string, pass: string) {
-    return post("login", { name, pass: btoa(pass) });
+    return post<ApiResponse<null>>("login", { name, pass: btoa(pass) });
 }
 
 export async function apiRegistration(name: string, pass: string) {
@@ -93,10 +93,10 @@ export const apiGetLabelsFor = (media_id: string) => async () => {
         "request for media_id",
         media_id,
         btoa(media_id),
-        atob(btoa(media_id))
+        atob(btoa(media_id)),
     );
     const { data } = await get<{ id: number; enabled: number }[]>(
-        `tags/media/${btoa(media_id)}`
+        `tags/media/${btoa(media_id)}`,
     );
     return data || [];
 };
@@ -163,7 +163,7 @@ export async function apiAddLabel(label: string) {
 
 export async function apiToggleLabelOnMedia(
     label_id: number,
-    media_id: string
+    media_id: string,
 ) {
     return post("tags/media/toggle", { label_id, media_id });
 }

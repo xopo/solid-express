@@ -116,7 +116,7 @@ export default function MediaPlayer({ pick, action }: PlayerPops) {
 
                     const playHistory =
                         getLocalStoragePreferences().history.find(
-                            (item) => item.id === pick()!.media_id,
+                            (item) => item.id === pick()!.media_id
                         );
                     if (playHistory && !isNaN(playRef!.duration)) {
                         playRef!.currentTime =
@@ -138,7 +138,7 @@ export default function MediaPlayer({ pick, action }: PlayerPops) {
             }
         }
     });
-    // TODO bibi
+
     async function onEnded() {
         removeFromHistory(pick()!.media_id);
         action("next");
