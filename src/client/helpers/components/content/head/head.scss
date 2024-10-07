@@ -1,7 +1,0 @@
-@import "../../../utils.scss";
-nav {
-    text-align: left;
-    @include mobile {
-        text-align: center;
-    }
-}

@@ -5,11 +5,13 @@ import {
     dbGetDummyMedia,
     dbGetToDeleteMedia,
     dbGetUnAcknowledged,
+    dbGetWaitingMedia,
     dbRemoveCompletedMedia,
     dbRemoveDeletableFromDB,
     dbSetAcknowledged,
     dbSetDummyAsDone,
 } from "../db/queries";
+import eventEmitter, { EventTypes } from "../event";
 
 const sseRoute = Router();
 
@@ -61,7 +63,7 @@ const processMessage = async (user_id: number, res: Response) => {
         "[SSE processMessage]: user_id=",
         user_id,
         " -message- ",
-        message
+        message,
     );
     if (message) {
         res.write(`data: ${message}\n\n`);
@@ -84,9 +86,14 @@ sseRoute.get("/", isAuthorized, async (req, res: Response) => {
     //    processMessage(req.session.user!.id, res);
     // }, intervalTime.fast);
 
-    setTimeout(() => {
-        processMessage(req.session.user!.id, res);
-    }, 1000);
+    // setTimeout(() => {
+    //     processMessage(req.session.user!.id, res);
+    // }, 1000);
+    console.log("SSE Listen to event emitter \n\n");
+    eventEmitter.on(EventTypes.WORKER, (data: { type: string }) => {
+        res.write(`data: media ${data.type} \n\n`);
+        // sendWaitingFiles(req.session.user.id, res);
+    });
 
     req.on("resume", () => {
         console.info(`client ${req.session.user!.name} has opened connection`);
@@ -99,5 +106,10 @@ sseRoute.get("/", isAuthorized, async (req, res: Response) => {
         intervalTime.enabled = 0;
     });
 });
+
+async function sendWaitingFiles(user_id: number, res: Response) {
+    const sendWaitingFiles = await dbGetWaitingMedia(user_id);
+    res.write(`data: ${JSON.stringify(sendWaitingFiles)} \n\n`);
+}
 
 export default sseRoute;

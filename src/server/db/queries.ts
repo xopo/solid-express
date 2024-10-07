@@ -41,6 +41,13 @@ export type WaitingMedia = {
     user_id: number;
 };
 
+export type WaitingFile = {
+    id: number;
+    media_id: string;
+    name: string;
+    url: string;
+};
+
 export type TagsUsers = {
     user_id: number;
     tag_id: number;
@@ -86,7 +93,7 @@ export const dbCheckWaitingMedia = async (media_id: string, url: string) =>
 export const dbInsertWaitingMedia = async (
     media_id: string,
     url: string,
-    user_id: number
+    user_id: number,
 ) => getWaitingTable().insert({ media_id, url, user_id });
 
 export const dbGetWaitingMedia = async (user_id: number, limit = 100) =>
@@ -106,7 +113,7 @@ export const dbGetWaitingMedia = async (user_id: number, limit = 100) =>
             "d.channel_url",
             "d.uploader",
             "d.upload_date",
-            "d.upload_url"
+            "d.upload_url",
         )
         .leftJoin("files as f", "f.media_id", "wm.media_id")
         .leftJoin("description as d", "d.media_id", "wm.media_id")
@@ -115,12 +122,9 @@ export const dbGetWaitingMedia = async (user_id: number, limit = 100) =>
 
 export const dbGetFirstWaitingMedia = async () =>
     getWaitingTable()
-        .select<WaitingMedia & { name: string }>(
-            "wm.id",
-            "wm.url",
-            "wm.media_id",
-            "f.name"
-        )
+        .select<
+            WaitingMedia & { name: string }
+        >("wm.id", "wm.url", "wm.media_id", "f.name")
         .leftJoin("files as f", "f.media_id", "wm.media_id")
         .orderBy("wm.id", "asc")
         .where("status", "waiting")
@@ -160,7 +164,7 @@ type Status =
     | null; // dummy = file exists, downloaded
 export const dbUpdateWaitingMediaStatus = async (
     id: number,
-    status: Status
+    status: Status,
 ) => {
     await getWaitingTable().where({ id }).update({ status, acknowledge: "0" });
 };
@@ -171,7 +175,7 @@ export const dbUpdateWaitingMediaId = async (id: number, media_id: string) => {
 
 export const dbUpdateWaitingMediaStatusByMediaId = async (
     media_id: string,
-    status: Status
+    status: Status,
 ) => {
     await getWaitingTable()
         .where({ media_id })
@@ -189,9 +193,9 @@ export const dbSetDummyAsDone = async (id: number) =>
 
 export const dbGetWaitingByMediaId = async (media_id: string) => {
     return await getWaitingTable()
-        .select<File>("wm.id", "f.name")
+        .select<WaitingFile>("wm.id", "f.name", "wm.media_id")
         .where("wm.media_id", media_id)
-        .andWhere({ status: "download" })
+        .whereIn("status", ["details", "new", "download"])
         .leftJoin("files as f", "f.media_id", "wm.media_id")
         .first();
 };
@@ -199,7 +203,7 @@ export const dbGetWaitingByMediaId = async (media_id: string) => {
 export const dbCreateDummyWaitingMedia = async (
     media_id: string,
     url: string,
-    status: Status
+    status: Status,
 ) => getWaitingTable().insert({ media_id, url, status });
 
 export const dbGetDummyMedia = async (user_id: number, status = "dummy") =>
@@ -281,8 +285,8 @@ export async function dbGetUserContentByTags(user_id: number, tags?: string) {
             "f.add_time",
             "d.*",
             connection.raw(
-                "group_concat(case when tm.enabled = 1 then t.name else '' end) as tags"
-            )
+                "group_concat(case when tm.enabled = 1 then t.name else '' end) as tags",
+            ),
         )
         .leftJoin("user_media as um", "um.file_id", "f.id")
         .leftJoin("description as d", "d.media_id", "f.media_id")
@@ -383,7 +387,7 @@ export async function dbAddLabel2UserIfNotExist(name: string, user_id: number) {
 export async function dbToggleLabelOnMedia(
     tag_id: number,
     media_id: string,
-    user_id: number
+    user_id: number,
 ) {
     await getTagsMediaTable()
         .where({ tag_id, media_id, user_id })

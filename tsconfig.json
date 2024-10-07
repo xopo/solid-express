@@ -21,9 +21,13 @@
         "noUnusedLocals": true,
         "noUnusedParameters": true,
         "noFallthroughCasesInSwitch": true,
+        "outDir": "./dist",
+        "rootDir": "./src",
+        "esModuleInterop": true,
         /* vitest */
         "types": ["vitest/globals"]
     },
-    "include": ["src"],
+    "include": ["src/**/*"],
+    "exclude": ["node_modules"],
     "references": [{ "path": "./tsconfig.node.json" }]
 }

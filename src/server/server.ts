@@ -40,7 +40,7 @@ app.use(
             },
         }),
         secret: JWT_SECRET!,
-    })
+    }),
 );
 
 // app.use(session({
@@ -50,15 +50,9 @@ app.use(
 // }));
 app.use(`${base}media/`, express.static(STATIC_FILES));
 
-// app.use(`${base}api/content`, content);
-
 app.use(`${base}api/login`, loginRoute);
 app.use(`${base}api/tags`, tagsRoute);
 app.use(`${base}api/content`, contentRoute);
 app.use(`${base}api/newMedia`, serverPushEvents);
-
-app.get("/hello", (_, res) => {
-    res.json("Hello Vite + React + TypeScript!");
-});
 
 export default app;

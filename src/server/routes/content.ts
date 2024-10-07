@@ -21,6 +21,8 @@ import validate from "./validate";
 import { uriSchema } from "../../common/validate/schema";
 import { extractMediaMetaFromUrl } from "./mediaHelper";
 import { grabWaiting, removeFilesIfExists } from "../grabber/grab";
+import { getWorker } from "../workers/workers";
+import eventEmitter, { EventTypes } from "../event";
 
 const contentRoute = Router();
 
@@ -41,7 +43,7 @@ contentRoute.post<any, any, any, { tags: string }>(
             ? await dbGetUserContentByTags(req.session.user.id, cleanTags)
             : [];
         res.json({ success: true, data: content });
-    }
+    },
 );
 
 contentRoute.get("/roles", isAuthorized, async (req, res) => {
@@ -64,25 +66,40 @@ contentRoute.post<any, any, any, { url: string }>(
             }
             const fileInDb = await dbCheckFileExists(id, url);
             if (!fileInDb) {
-                const fileWaiting = await dbCheckWaitingMedia(id, url);
-                if (!fileWaiting) {
-                    const result = await dbInsertWaitingMedia(
-                        id,
-                        url,
-                        req.session.user.id
-                    );
-                    if (result) {
-                        grabWaiting(req.session.user.id);
-                    }
+                const result = await dbInsertWaitingMedia(
+                    id,
+                    url,
+                    req.session.user.id,
+                );
+                if (!result) {
+                    console.log("error adding to db");
+                    return res
+                        .status(500)
+                        .json({ error: true, message: "add to db problem" });
                 }
-                const status =
-                    fileWaiting && fileWaiting.status
-                        ? fileWaiting.status
-                        : "new";
+
+                const worker = getWorker(id, {
+                    id: result[0],
+                    media_id: id,
+                    url,
+                    user_id: req.session.user.id,
+                });
+
+                worker?.on("message", (data: { type: string }) => {
+                    console.log("router got data from worker", data);
+                    eventEmitter?.emit(EventTypes.WORKER, data);
+                });
+
+                worker?.on("exit", () => {
+                    console.log("Worker exited, make cleanup");
+                    worker.removeAllListeners();
+                });
+
+                res.on("exit", () => eventEmitter.removeAllListeners());
 
                 res.json({
                     success: true,
-                    data: { waiting: { id, url, status } },
+                    data: { waiting: { id, url, status: "new" } },
                 });
                 return;
             } else {
@@ -90,7 +107,7 @@ contentRoute.post<any, any, any, { url: string }>(
                 await dbCreateDummyWaitingMedia(
                     fileInDb.media_id,
                     url,
-                    "dummy"
+                    "dummy",
                 );
             }
             res.json({ success: true, data: fileInDb });
@@ -102,7 +119,7 @@ contentRoute.post<any, any, any, { url: string }>(
                         : "Problem with adding new media",
             });
         }
-    }
+    },
 );
 
 contentRoute.post("/getWaiting", isAuthorized, async (req, res) => {
@@ -127,7 +144,7 @@ contentRoute.post<any, any, any, { media_id: string }>(
             await removeFilesIfExists(media_id);
         }
         res.json({ success: true });
-    }
+    },
 );
 
 contentRoute.post<any, any, any, { media_id: string; existing: boolean }>(
@@ -146,12 +163,12 @@ contentRoute.post<any, any, any, { media_id: string; existing: boolean }>(
                 await dbInsertWaitingMedia(
                     media_id,
                     media.url,
-                    req.session.user.id
+                    req.session.user.id,
                 );
             }
         }
         res.json({ success: true });
-    }
+    },
 );
 
 export default contentRoute;
