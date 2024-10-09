@@ -303,7 +303,7 @@ export default function MediaPlayer({ pick, action }: PlayerPops) {
                             onmouseenter={() => setHoverSeekBar(true)}
                             onmouseleave={() => setHoverSeekBar(false)}
                             step={0.2}
-                            // value={cursor()}
+                            value={cursor()}
                             onChange={(ev) =>
                                 updateControlPosition(ev.target.value)
                             }

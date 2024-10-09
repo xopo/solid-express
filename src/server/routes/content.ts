@@ -3,7 +3,6 @@ import { isAuthorized } from "./auth";
 import {
     dbAddMediaToUser,
     dbCheckFileExists,
-    dbCheckWaitingMedia,
     dbCountUsersWithMedia,
     dbCreateDummyWaitingMedia,
     dbGetDetailsByMediaId,
@@ -11,7 +10,7 @@ import {
     dbGetUserContentByTags,
     dbGetUserRoles,
     dbGetWaitingMedia,
-    dbInsertWaitingMedia,
+    dbInsertNewMedia,
     dbRemoveDetailsByMediaId,
     dbRemoveFileByMediaId,
     dbRemoveMediaFromUser,
@@ -20,8 +19,8 @@ import {
 import validate from "./validate";
 import { uriSchema } from "../../common/validate/schema";
 import { extractMediaMetaFromUrl } from "./mediaHelper";
-import { grabWaiting, removeFilesIfExists } from "../grabber/grab";
-import { getWorker } from "../workers/workers";
+import { removeFilesIfExists } from "../grabber/grab";
+import { getWorker, terminateWorker } from "../workers/workers";
 import eventEmitter, { EventTypes } from "../event";
 
 const contentRoute = Router();
@@ -66,11 +65,17 @@ contentRoute.post<any, any, any, { url: string }>(
             }
             const fileInDb = await dbCheckFileExists(id, url);
             if (!fileInDb) {
-                const result = await dbInsertWaitingMedia(
+                const result = await dbInsertNewMedia(
                     id,
                     url,
                     req.session.user.id,
                 );
+
+                const response = {
+                    success: true,
+                    data: { waiting: { id, url, status: "new" } },
+                };
+
                 if (!result) {
                     console.log("error adding to db");
                     return res
@@ -85,23 +90,23 @@ contentRoute.post<any, any, any, { url: string }>(
                     user_id: req.session.user.id,
                 });
 
-                worker?.on("message", (data: { type: string }) => {
-                    console.log("router got data from worker", data);
-                    eventEmitter?.emit(EventTypes.WORKER, data);
-                });
+                if (worker) {
+                    worker?.on("message", (data: { type: string }) => {
+                        console.log("router got data from worker", data);
+                        eventEmitter?.emit(EventTypes.WORKER, data);
+                    });
 
-                worker?.on("exit", () => {
-                    console.log("Worker exited, make cleanup");
-                    worker.removeAllListeners();
-                });
+                    worker?.on("exit", () => {
+                        console.log("Worker exited, make cleanup");
+                        worker.removeAllListeners();
+                        terminateWorker(id);
+                    });
 
-                res.on("exit", () => eventEmitter.removeAllListeners());
-
-                res.json({
-                    success: true,
-                    data: { waiting: { id, url, status: "new" } },
-                });
-                return;
+                    response.data.waiting.status = "new";
+                } else {
+                    response.data.waiting.status = "waiting";
+                }
+                return res.json(response);
             } else {
                 await dbAddMediaToUser(fileInDb.id, req.session.user.id);
                 await dbCreateDummyWaitingMedia(
@@ -160,7 +165,7 @@ contentRoute.post<any, any, any, { media_id: string; existing: boolean }>(
             await dbRemoveFileByMediaId(media_id);
             await removeFilesIfExists(media_id);
             if (media) {
-                await dbInsertWaitingMedia(
+                await dbInsertNewMedia(
                     media_id,
                     media.url,
                     req.session.user.id,

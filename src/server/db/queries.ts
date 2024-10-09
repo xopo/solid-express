@@ -1,7 +1,7 @@
 import { Payload } from "youtube-dl-exec";
 import { now } from "../helper";
 import { connection } from "./connection";
-import knex, { Knex } from "knex";
+import { Knex } from "knex";
 
 export type User = {
     id: number;
@@ -90,7 +90,7 @@ export const dbCheckFileExists = async (media_id: string, url: string) =>
 export const dbCheckWaitingMedia = async (media_id: string, url: string) =>
     getWaitingTable().where({ media_id }).orWhere({ url }).first();
 
-export const dbInsertWaitingMedia = async (
+export const dbInsertNewMedia = async (
     media_id: string,
     url: string,
     user_id: number,
@@ -120,15 +120,25 @@ export const dbGetWaitingMedia = async (user_id: number, limit = 100) =>
         .where("wm.user_id", user_id)
         .limit(limit);
 
+export const dbRemoveWaitingMedia = async (media_id: string) => {
+    return getWaitingTable().where("media_id", media_id).delete();
+};
+
+export const dbUpdateRetryCount = async (media_id: string, retry: number) =>
+    getWaitingTable()
+        .where("media_id", media_id)
+        .update("retry", retry + 1);
+
 export const dbGetFirstWaitingMedia = async () =>
     getWaitingTable()
         .select<
-            WaitingMedia & { name: string }
-        >("wm.id", "wm.url", "wm.media_id", "f.name")
+            WaitingMedia & { name: string; add_time: string; retry: number }
+        >("wm.id", "wm.url", "wm.media_id", "f.name", "f.add_time", "wm.retry")
         .leftJoin("files as f", "f.media_id", "wm.media_id")
         .orderBy("wm.id", "asc")
         .where("status", "waiting")
         .orWhere("status", "details")
+        .orWhereNull("status")
         .first();
 
 export const dbGetDownloadingMedia = async (status = "download") =>
