@@ -1,4 +1,5 @@
 ul.media-list {
+    width: 100%;
     padding-left: 0;
     list-style: none;
     display: grid;
@@ -9,4 +10,10 @@ ul.media-list {
     li {
         text-align: left;
     }
+    &.small {
+        li {
+            max-width: 33%;
+        }
+    }
 }
+
