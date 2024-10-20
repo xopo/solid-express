@@ -8,6 +8,7 @@ import "./media_list.scss";
 
 export default function MediaList() {
     const [pick, setNewEntry] = createSignal<EntryData | undefined>();
+    //@ts-ignore
     const [visible, setVisible] = createSignal<string[]>([]);
     const [activeDetail, setActiveDetail] = createSignal<
         EntryData | undefined

@@ -3,6 +3,7 @@ import nodeCron from "node-cron";
 import ViteExpress from "vite-express";
 import { downloadOrphanMedia, mediaCleanUp } from "./cron/backgroundjobs";
 
+//@ts-ignore
 import { port } from "../../vite.config.mts";
 import { now } from "./helper";
 

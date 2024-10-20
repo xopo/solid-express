@@ -32,17 +32,24 @@ try {
 
 const post = async <T>(url: string, data?: any): Promise<ApiResponse<T>> => {
     const URL = `${BASE_URL}api/${url}`;
-    const result = await fetch(URL, {
-        method: "POST",
-        credentials: "same-origin",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        referrerPolicy: "no-referrer",
-        body: JSON.stringify(data),
-    });
-
-    return await result.json();
+    try {
+        const result = await fetch(URL, {
+            method: "POST",
+            credentials: "same-origin",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            referrerPolicy: "no-referrer",
+            body: JSON.stringify(data),
+        });
+        return await result.json();
+    } catch (err) {
+        return {
+            error: (err as { message?: string })?.message || "error fetching",
+            data: undefined,
+            success: undefined,
+        };
+    }
 };
 
 const get = async <T>(url: string): Promise<ApiResponse<T>> => {
@@ -59,7 +66,7 @@ export const getContent = async (tags: string) => {
 };
 
 export async function apiLogin(name: string, pass: string) {
-    return post<ApiResponse<null>>("login", { name, pass: btoa(pass) });
+    return post<null>("login", { name, pass: btoa(pass) });
 }
 
 export async function apiRegistration(name: string, pass: string) {

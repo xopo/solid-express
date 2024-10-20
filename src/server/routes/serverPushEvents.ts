@@ -5,7 +5,7 @@ import {
     dbGetDummyMedia,
     dbGetToDeleteMedia,
     dbGetUnAcknowledged,
-    dbGetWaitingMedia,
+    // dbGetWaitingMedia,
     dbRemoveCompletedMedia,
     dbRemoveDeletableFromDB,
     dbSetAcknowledged,
@@ -107,9 +107,9 @@ sseRoute.get("/", isAuthorized, async (req, res: Response) => {
     });
 });
 
-async function sendWaitingFiles(user_id: number, res: Response) {
-    const sendWaitingFiles = await dbGetWaitingMedia(user_id);
-    res.write(`data: ${JSON.stringify(sendWaitingFiles)} \n\n`);
-}
+// async function sendWaitingFiles(user_id: number, res: Response) {
+//     const sendWaitingFiles = await dbGetWaitingMedia(user_id);
+//     res.write(`data: ${JSON.stringify(sendWaitingFiles)} \n\n`);
+// }
 
 export default sseRoute;

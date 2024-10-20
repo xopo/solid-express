@@ -21,8 +21,10 @@ export default function Login() {
             const result = await apiLogin(name, pass);
             if ("success" in result) {
                 location.href = BASE_URL;
+                //@ts-ignore
             } else if (result?.error) {
                 nameRef.focus();
+                //@ts-ignore
                 setErrors("nume", result?.error);
             }
         }
@@ -36,6 +38,7 @@ export default function Login() {
             if ("success" in result) {
                 location.href = BASE_URL;
             } else {
+                //@ts-ignore
                 setErrors("nume", result?.error);
                 nameRef.focus();
             }
