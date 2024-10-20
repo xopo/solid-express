@@ -4,7 +4,7 @@ import { grabImage } from "../grabber/grab";
 import {
     dbRemoveCompletedMedia,
     dbUpdateWaitingMediaId,
-    dbGetWaitingByMediaId,
+    // dbGetWaitingByMediaId,
     dbUpdateWaitingMediaStatus,
     dbFileExists,
     dbAddNewFile,

@@ -133,8 +133,9 @@ export const dbGetFirstWaitingMedia = async () =>
     getWaitingTable()
         .select<
             WaitingMedia & { name: string; add_time: string; retry: number }
-        >("wm.id", "wm.url", "wm.media_id", "f.name", "f.add_time", "wm.retry")
+        >("wm.id", "wm.url", "wm.media_id", "f.name", "f.add_time", "wm.retry", "um.user_id")
         .leftJoin("files as f", "f.media_id", "wm.media_id")
+        .leftJoin("user_media as um", "f.id", "um.file_id")
         .orderBy("wm.id", "asc")
         .where("status", "waiting")
         .orWhere("status", "details")
@@ -172,6 +173,7 @@ type Status =
     | "delete"
     | "dummy"
     | null; // dummy = file exists, downloaded
+
 export const dbUpdateWaitingMediaStatus = async (
     id: number,
     status: Status,

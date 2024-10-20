@@ -25,7 +25,7 @@ const extractYoutubeId = (url: URL) => {
     const { hostname, pathname, searchParams } = url;
     if (hostname.includes(".com")) {
         if (pathname.includes("live")) {
-            return pathname.split("live").join("").replaceAll("/", "");
+            return pathname.split("/live").join("");
         }
         return searchParams.get("v") as string;
     } else if (hostname.includes(".be")) {

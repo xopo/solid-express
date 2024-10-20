@@ -63,10 +63,9 @@ export default function WaitingFiles({ hide, newFiles, resetNewFiles }: Props) {
         <ul class="download">
             <For each={newFiles()}>
                 {(file) => (
-                    <div class="flex">
+                    <div class="flex temp">
                         <div>{file.url}</div>
-                        <div>✅</div>
-                        <div>
+                        <div class="last">
                             <img width="40" src={`${BASE_URL}spinner.gif`} />
                         </div>
                     </div>

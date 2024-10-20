@@ -22,19 +22,24 @@ import { extractMediaMetaFromUrl } from "./mediaHelper";
 import { removeFilesIfExists } from "../grabber/grab";
 import { getWorker, terminateWorker } from "../workers/workers";
 import eventEmitter, { EventTypes } from "../event";
+import lazyCatch from "../lib/lazyCatch";
 
 const contentRoute = Router();
 
-contentRoute.get("/", isAuthorized, async (req, res) => {
-    const { id } = req.session.user;
-    const content = id ? await dbGetUserContent(req.session.user.id) : [];
-    res.json({ success: true, data: content });
-});
+contentRoute.get(
+    "/",
+    isAuthorized,
+    lazyCatch(async (req, res) => {
+        const { id } = req.session.user;
+        const content = id ? await dbGetUserContent(req.session.user.id) : [];
+        res.json({ success: true, data: content });
+    }),
+);
 
 contentRoute.post<any, any, any, { tags: string }>(
     "/",
     isAuthorized,
-    async (req, res) => {
+    lazyCatch(async (req, res) => {
         const { tags } = req.body;
         const cleanTags = tags.trim().replace(/[^a-zA-Z\s0-9]/gi, "");
         const { id } = req.session.user;
@@ -42,20 +47,24 @@ contentRoute.post<any, any, any, { tags: string }>(
             ? await dbGetUserContentByTags(req.session.user.id, cleanTags)
             : [];
         res.json({ success: true, data: content });
-    },
+    }),
 );
 
-contentRoute.get("/roles", isAuthorized, async (req, res) => {
-    const { user } = req.session;
-    const roles = await dbGetUserRoles(user.id);
-    res.json({ success: true, data: roles });
-});
+contentRoute.get(
+    "/roles",
+    isAuthorized,
+    lazyCatch(async (req, res) => {
+        const { user } = req.session;
+        const roles = await dbGetUserRoles(user.id);
+        res.json({ success: true, data: roles });
+    }),
+);
 
 contentRoute.post<any, any, any, { url: string }>(
     "/add",
     isAuthorized,
     validate(uriSchema),
-    async (req, res) => {
+    lazyCatch(async (req, res) => {
         const { url } = req.body;
         try {
             const { id, type } = extractMediaMetaFromUrl(url);
@@ -124,18 +133,22 @@ contentRoute.post<any, any, any, { url: string }>(
                         : "Problem with adding new media",
             });
         }
-    },
+    }),
 );
 
-contentRoute.post("/getWaiting", isAuthorized, async (req, res) => {
-    const data = await dbGetWaitingMedia(req.session.user.id);
-    res.json({ success: true, data });
-});
+contentRoute.post(
+    "/getWaiting",
+    isAuthorized,
+    lazyCatch(async (req, res) => {
+        const data = await dbGetWaitingMedia(req.session.user.id);
+        res.json({ success: true, data });
+    }),
+);
 
 contentRoute.post<any, any, any, { media_id: string }>(
     "/delete",
     isAuthorized,
-    async (req, res) => {
+    lazyCatch(async (req, res) => {
         const { media_id } = req.body;
         if (!media_id) {
             res.status(400).json({ error: "media_id is required" });
@@ -149,13 +162,13 @@ contentRoute.post<any, any, any, { media_id: string }>(
             await removeFilesIfExists(media_id);
         }
         res.json({ success: true });
-    },
+    }),
 );
 
 contentRoute.post<any, any, any, { media_id: string; existing: boolean }>(
     "/reset",
     isAuthorized,
-    async (req, res) => {
+    lazyCatch(async (req, res) => {
         const { media_id, existing } = req.body;
         if (!existing) {
             await dbUpdateWaitingMediaStatusByMediaId(media_id, null);
@@ -173,7 +186,7 @@ contentRoute.post<any, any, any, { media_id: string; existing: boolean }>(
             }
         }
         res.json({ success: true });
-    },
+    }),
 );
 
 export default contentRoute;
