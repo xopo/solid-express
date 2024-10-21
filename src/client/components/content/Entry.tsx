@@ -4,6 +4,7 @@ import SvgIcon from "../common/SvgIcon";
 import { Accessor, Show } from "solid-js";
 import ActionMenu from "./player/action/ActionMenu";
 import { EntryData } from "../../context/appContext";
+import BASE_URL from "../../const";
 import "./entry.scss";
 
 type MediaEntryProps = {
@@ -57,9 +58,13 @@ export default function MediaEntry({
                 <picture
                     class="trigger"
                     onclick={onChangeMedia}
-                    data-url={`/media/${entry.name}.webp`}
+                    data-url={`${BASE_URL}media/${entry.name}.webp`}
                 >
-                    <source srcset={show ? `/media/${entry.name}.webp` : "#"} />
+                    <source
+                        srcset={
+                            show ? `${BASE_URL}media/${entry.name}.webp` : "#"
+                        }
+                    />
                     <img width="350" src={show ? entry.thumbnail : "#"} />
                 </picture>
             </div>

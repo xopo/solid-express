@@ -2,7 +2,7 @@ module.exports = {
     apps: [
         {
             name: "solid-mp3",
-            script: "npm run build", //start",
+            script: "npm start",
             watch: ["dist"],
             // Delay between restart
             watch_delay: 1000,

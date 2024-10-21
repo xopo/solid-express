@@ -121,7 +121,7 @@ export default function AddMedia() {
                                 {waiting() && (
                                     <img
                                         width="30"
-                                        src={`${BASE_URL}/spinner.gif`}
+                                        src={`${BASE_URL}src/public/spinner.gif`}
                                     />
                                 )}
                             </button>

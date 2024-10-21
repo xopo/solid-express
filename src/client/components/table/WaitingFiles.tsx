@@ -66,7 +66,10 @@ export default function WaitingFiles({ hide, newFiles, resetNewFiles }: Props) {
                     <div class="flex temp">
                         <div>{file.url}</div>
                         <div class="last">
-                            <img width="40" src={`${BASE_URL}spinner.gif`} />
+                            <img
+                                width="40"
+                                src={`${BASE_URL}src/public/spinner.gif`}
+                            />
                         </div>
                     </div>
                 )}
@@ -123,7 +126,11 @@ const statusIndicator = (status: string) => {
     if (["details", "download"].includes(status)) {
         console.log({ BASE_URL });
         return (
-            <img width="40" src={`${BASE_URL}spinner.gif`} alt="download now" />
+            <img
+                width="40"
+                src={`${BASE_URL}src/public/spinner.gif`}
+                alt="download now"
+            />
         );
     }
     return null;

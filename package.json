@@ -7,7 +7,9 @@
         "debug": "nodemon --inspect -w src/server -x tsx src/server/main.ts",
         "test": "vitest",
         "build": "tsc && vite build",
-        "preview": "vite preview"
+        "preview": "vite preview",
+        "start": "NODE_ENV=production tsx src/server/main.ts",
+        "local": "NODE_ENV=dev tsx src/server/main.ts"
     },
     "dependencies": {
         "@solid-primitives/intersection-observer": "^2.1.6",

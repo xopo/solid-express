@@ -1,4 +1,4 @@
-import express from "express";
+import express, { NextFunction, Request, Response } from "express";
 import bodyParser from "body-parser";
 import loginRoute from "./routes/login";
 import sqlite from "better-sqlite3";
@@ -14,7 +14,7 @@ import { STATIC_FILES } from "./routes/apihelper";
 config();
 
 const production = process.env.NODE_ENV === "production";
-export const base = production ? "/mp3/" : "/";
+export const base = production ? "/solid-mp3/" : "/";
 
 const app = express();
 
@@ -49,10 +49,15 @@ app.use(
 //     saveUninitialized: false,
 // }));
 app.use(`${base}media/`, express.static(STATIC_FILES));
+app.use(`${base}public/`, express.static("../public/"));
 
 app.use(`${base}api/login`, loginRoute);
 app.use(`${base}api/tags`, tagsRoute);
 app.use(`${base}api/content`, contentRoute);
 app.use(`${base}api/newMedia`, serverPushEvents);
+app.use((er: Error, _req: Request, _res: Response, next: NextFunction) => {
+    console.log(" expreess catch error", er);
+    next(er);
+});
 
 export default app;
