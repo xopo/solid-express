@@ -17,7 +17,7 @@ import SvgIcon from "../common/SvgIcon";
 import { useMp3Context } from "../../context/appContext";
 import { effect } from "solid-js/web";
 import { NewFile } from "../media/AddMedia";
-import BASE_URL from "../../const";
+import Loading from "../common/LoadComponent";
 
 type Props = {
     hide: () => void;
@@ -66,10 +66,7 @@ export default function WaitingFiles({ hide, newFiles, resetNewFiles }: Props) {
                     <div class="flex temp">
                         <div>{file.url}</div>
                         <div class="last">
-                            <img
-                                width="40"
-                                src={`${BASE_URL}src/public/spinner.gif`}
-                            />
+                            <Loading />
                         </div>
                     </div>
                 )}
@@ -124,14 +121,7 @@ const WaitingSkeleton = ({ file }: { file: Waiting }) => (
 const statusIndicator = (status: string) => {
     if (status === "waiting") return "⌛";
     if (["details", "download"].includes(status)) {
-        console.log({ BASE_URL });
-        return (
-            <img
-                width="40"
-                src={`${BASE_URL}src/public/spinner.gif`}
-                alt="download now"
-            />
-        );
+        return <Loading />;
     }
     return null;
 };

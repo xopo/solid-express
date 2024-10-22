@@ -1,7 +1,36 @@
 @import "../../../utils.scss";
-nav {
-    text-align: left;
-    @include mobile {
-        text-align: center;
+.head {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    .folders {
+        display: flex;
+        overflow: auto;
+        list-style: none;
+        padding-left: 0;
+        margin: 0;
+        cursor: pointer;
+        li {
+            white-space: nowrap;
+            color: #aaa;
+            background: #eee;
+            padding: 4px;
+            border-radius: 5px;
+            box-shadow: 1px 2px 4px #aaa;
+            margin: 4px;
+            &.selected {
+                color: black;
+            }
+            + li {
+                margin-left: 10px;
+            }
+        }
+    }
+    nav {
+        margin-left: 11px;
+        text-align: left;
+        @include mobile {
+            text-align: center;
+        }
     }
 }

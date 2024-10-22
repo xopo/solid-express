@@ -1,8 +1,10 @@
+import { For } from "solid-js";
 import { useMp3Context } from "../../../context/appContext";
 import "./head.scss";
+import { effect } from "solid-js/web";
 
 export default function Head() {
-    const { setTags } = useMp3Context();
+    const { setTags, dbTags, tags } = useMp3Context();
     let iRef: HTMLInputElement;
     let myTime: number;
     const updateTag = () => {
@@ -13,8 +15,21 @@ export default function Head() {
             iRef.value = clean;
         }, 500);
     };
+    effect(() => console.log("***", tags()));
     return (
-        <div>
+        <div class="head">
+            <ul class="folders">
+                <For each={dbTags()}>
+                    {(tag) => (
+                        <li
+                            classList={{ selected: tags().includes(tag.name) }}
+                            onClick={() => setTags(tag.name)}
+                        >
+                            {tag.name}
+                        </li>
+                    )}
+                </For>
+            </ul>
             <nav>
                 <input
                     ref={(e) => (iRef = e)}

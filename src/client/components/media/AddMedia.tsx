@@ -5,7 +5,7 @@ import { validateInputUrl } from "../../helpers/validate";
 import { apiSubmitNewMedia } from "../../api";
 import WaitingFiles from "../table/WaitingFiles";
 import "./add_media.scss";
-import BASE_URL from "../../const";
+import Loading from "../common/LoadComponent";
 
 export type NewFile = {
     id: string;
@@ -118,12 +118,7 @@ export default function AddMedia() {
                                 onclick={submit}
                             >
                                 {`${error() || "Download"}`} _|_
-                                {waiting() && (
-                                    <img
-                                        width="30"
-                                        src={`${BASE_URL}src/public/spinner.gif`}
-                                    />
-                                )}
+                                {waiting() && <Loading />}
                             </button>
                         </div>
                         <WaitingFiles

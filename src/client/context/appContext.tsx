@@ -2,23 +2,28 @@ import {
     createContext,
     createResource,
     createSignal,
+    onCleanup,
     useContext,
 } from "solid-js";
 import BASE_URL from "../const";
-import { Accessor } from "solid-js";
-import { getContent } from "../api";
+import { Accessor, Resource } from "solid-js";
+import { getContent, getTags } from "../api";
+import { effect } from "solid-js/web";
 
 export const Mp3Context = createContext<Mp3ContextType>({} as Mp3ContextType);
 
 type WithChildren = {
     children: any;
 };
+type Tag = { id: number; name: string };
 
 type Mp3ContextType = {
+    dbTags: Resource<Tag[] | undefined>;
     content: Accessor<EntryData[] | undefined>;
     refetchContent: () => void;
     serverMessage: Accessor<string | undefined>;
     setTags: (s: string) => void;
+    tags: Accessor<string[]>;
     cleanup: () => void;
 };
 
@@ -49,28 +54,48 @@ export type EntryData = {
 
 export const Mp3Provider = (props: WithChildren) => {
     const [serverMessage, setServerMessage] = createSignal<string>();
-    const [tags, setTags] = createSignal<string>("");
+    const [tags, setTags] = createSignal<string[]>([]);
     const serverEvent = new EventSource(`${BASE_URL}api/newMedia`);
+    const [dbTags] = createResource(getTags);
     const [content, { refetch: refetchContent }] = createResource(
         tags,
-        getContent
+        getContent,
     );
 
     serverEvent.onmessage = (msg: any) => {
-        console.log("[Context - SSE Event message]:", msg);
-        setServerMessage(msg.data);
+        if (msg.data !== serverMessage) {
+            setServerMessage(msg.data);
+            if (msg.data.includes("completed")) {
+                refetchContent();
+            }
+        }
     };
     serverEvent.onerror = (e) => console.error(e.toString());
     serverEvent.onopen = (e) =>
         console.info("Server Event is open for business", e);
 
+    const toggleTag = (tag: string) => {
+        console.log(" toggle tag ", tag);
+        if (tags().includes(tag)) {
+            setTags(tags().filter((sTag) => sTag !== tag));
+        } else {
+            setTags([...tags(), tag]);
+        }
+    };
+    effect(() => console.dir(tags()));
+
     const contextValue = {
+        dbTags,
         content,
         refetchContent,
         serverMessage,
-        setTags,
+        tags,
+        setTags: toggleTag,
         cleanup: () => serverEvent.close(),
     };
+    onCleanup(() => {
+        serverEvent?.close();
+    });
     return (
         <Mp3Context.Provider value={contextValue}>
             {props.children}

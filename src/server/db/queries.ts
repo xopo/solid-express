@@ -308,8 +308,9 @@ export async function dbGetUserContentByTags(user_id: number, tags?: string) {
         .andWhere("f.completed", "1")
         .modify(function (QueryBuilder) {
             if (tags?.length) {
-                const listOfTags = tags.split(" ");
-                for (let tag of listOfTags) {
+                // const listOfTags = tags.split(" ");
+                for (let tag of tags) {
+                    //listOfTags) {
                     QueryBuilder.where("f.name", "like", `%${tag}%`)
                         .orWhere("d.title", "like", `%${tag}%`)
                         .orWhere("d.description", "like", `%${tag}%`)
@@ -401,6 +402,7 @@ export async function dbToggleLabelOnMedia(
     media_id: string,
     user_id: number,
 ) {
+    console.log("-------- ", { tag_id, media_id, user_id });
     await getTagsMediaTable()
         .where({ tag_id, media_id, user_id })
         .first()

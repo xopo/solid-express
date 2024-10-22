@@ -29,7 +29,9 @@
 
 body.playing {
     nav {
-        height: 155px;
+        @include mobile {
+            height: 155px;
+        }
     }
 }
 

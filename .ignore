@@ -2,3 +2,4 @@ node_modules
 *lock*
 .git
 .vscode
+.DS_Store

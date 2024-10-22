@@ -90,10 +90,13 @@ sseRoute.get("/", isAuthorized, async (req, res: Response) => {
     //     processMessage(req.session.user!.id, res);
     // }, 1000);
     console.log("SSE Listen to event emitter \n\n");
-    eventEmitter.on(EventTypes.WORKER, (data: { type: string }) => {
-        res.write(`data: media ${data.type} \n\n`);
-        // sendWaitingFiles(req.session.user.id, res);
-    });
+    eventEmitter.on(
+        EventTypes.WORKER,
+        (data: { type: string; media_id?: string }) => {
+            res.write(`data: media ${data.type} ${data.media_id || ""} \n\n`);
+            // sendWaitingFiles(req.session.user.id, res);
+        },
+    );
 
     req.on("resume", () => {
         console.info(`client ${req.session.user!.name} has opened connection`);

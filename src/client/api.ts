@@ -57,10 +57,17 @@ const get = async <T>(url: string): Promise<ApiResponse<T>> => {
     return await (await fetch(URL)).json();
 };
 
-export const getContent = async (tags: string) => {
-    const result = tags
-        ? await post<EntryData[]>("content", { tags })
-        : await get<EntryData[]>("content");
+export const getTags = async () => {
+    const result = await get<{ id: number; name: string }>("tags");
+    console.log("get content result", result);
+    return result?.data || [];
+};
+
+export const getContent = async (tags: string[]) => {
+    const result =
+        tags.length > 0
+            ? await post<EntryData[]>("content", { tags })
+            : await get<EntryData[]>("content");
     console.log("get content result", result);
     return result?.data || [];
 };
