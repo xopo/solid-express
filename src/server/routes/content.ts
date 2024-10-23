@@ -42,7 +42,7 @@ contentRoute.post<any, any, any, { tags: string }>(
     lazyCatch(async (req, res) => {
         const { tags } = req.body;
         const cleanTags = tags.map((t: string) =>
-            t.trim().replace(/[^a-zA-Z\s0-9]/gi, ""),
+            t.trim().replace(/[^a-zA-Z\s0-9_-]/gi, ""),
         );
         const { id } = req.session.user;
         const content = id
