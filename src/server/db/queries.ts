@@ -290,23 +290,50 @@ export async function dbGetUserContent(user_id: number, tags?: string) {
         .orderBy("f.add_time", "desc");
 }
 
-export async function dbGetUserContentByTags(user_id: number, tags?: string[]) {
-    console.log("__** get user content by tags", { user_id, tags });
-    return getFilesTable()
-        .select("f.name", "f.add_time", "d.*")
-        .join("description as d", "d.media_id", "f.media_id")
-        .whereIn("f.media_id", function () {
-            this.select("tm.media_id")
-                .from("tags_media as tm")
-                .leftJoin("tags as t", function () {
-                    this.on("t.id", "=", "tm.tag_id").andOn(
-                        connection.raw("t.name in ?", tags as string[]),
-                    );
-                })
-                .where({ enabled: 1, user_id, tag_id: "t.id" })
-                .groupBy("tm.media_id");
-        })
-        .orderBy("f.add_time", "desc");
+export async function dbGetUserContentByTags(user_id: number, tags: string[]) {
+    const tagIds = await getTagsTable().select("id").whereIn("name", tags);
+
+    console.log("__** get user content by tags", { user_id, tags, tagIds });
+    return (
+        getFilesTable()
+            .select("f.name", "f.add_time", "d.*")
+            .join("description as d", "d.media_id", "f.media_id")
+            .where("completed", 1)
+            .whereIn("f.media_id", function () {
+                this.select("tm.media_id")
+                    .from("tags_media as tm")
+                    .whereIn(
+                        "tm.tag_id",
+                        tagIds.map((t) => t.id),
+                    )
+                    // .leftJoin("tags as t", function () {
+                    //     this.on("t.id", "=", "tm.tag_id").andOn(
+                    //
+                    //         connection.raw("t.name in (?)",tagIds
+                    //         // connection.raw("t.name in (?)", [
+                    //         //     ...(tags as string[]),
+                    //         // ]),
+                    //     );
+                    // })
+                    .where({ enabled: 1, user_id })
+                    .groupBy("tm.media_id");
+            })
+            // .modify(function (QueryBuilder) {
+            //     if (tags?.length) {
+            //         // const listOfTags = tags.split(" ");
+            //         for (let tag of tags) {
+            //             //listOfTags) {
+            //             QueryBuilder.where("f.name", "like", `%${tag}%`)
+            //                 .orWhere("d.title", "like", `%${tag}%`)
+            //                 .orWhere("d.description", "like", `%${tag}%`)
+            //                 .orWhere("d.categories", "like", `%${tag}%`)
+            //                 .orWhere("d.uploader", "like", `%${tag}%`);
+            //         }
+            //     }
+            // })
+
+            .orderBy("f.add_time", "desc")
+    );
     // return await getFilesTable()
     //     .select(
     //         "f.name",
@@ -410,10 +437,12 @@ export async function dbAddLabelIfNotExists(name: string) {
 
 export async function dbGetUsersTags(user_id: number) {
     console.log("*** userid: ", user_id);
-    return getTagsUsersTable()
-        .select("ti.tag_id as id", "t.name")
-        .leftJoin("tags as t", "t.id", "ti.tag_id")
-        .where("ti.user_id", user_id);
+    return getTagsMediaTable()
+        .select("t.id", "t.name")
+        .leftJoin("tags as t", "t.id", "tm.tag_id")
+        .where("tm.enabled", 1)
+        .where("tm.user_id", user_id)
+        .groupBy("t.id");
 }
 
 export async function dbAddLabel2UserIfNotExist(name: string, user_id: number) {
