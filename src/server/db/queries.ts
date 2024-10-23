@@ -329,6 +329,23 @@ export async function dbUpdateFileStatus(media_id: string, completed: boolean) {
     return getFilesTable().update({ completed }).where({ media_id });
 }
 
+export async function dbSetMediaTags(
+    media_id: string,
+    user_id: number,
+    tags: string[],
+) {
+    console.log({ tags }, "---**");
+    const tagIds = await getTagsTable().select("id").whereIn("name", tags);
+    console.log("-****-", tagIds);
+    const insertTags = tagIds.map((tag) =>
+        getTagsMediaTable().insert({ media_id, user_id, tag_id: tag.id }),
+    );
+    await Promise.all(insertTags).catch((er) => {
+        console.log("promise all insert tags error", er);
+        throw new Error(er);
+    });
+}
+
 // user media
 export async function dbAddMediaToUser(file_id: number, user_id: number) {
     return getUserMediaTable()
@@ -379,6 +396,7 @@ export async function dbAddLabelIfNotExists(name: string) {
 }
 
 export async function dbGetUsersTags(user_id: number) {
+    console.log("*** userid: ", user_id);
     return getTagsUsersTable()
         .select("ti.tag_id as id", "t.name")
         .leftJoin("tags as t", "t.id", "ti.tag_id")
@@ -407,8 +425,19 @@ export async function dbToggleLabelOnMedia(
         .where({ tag_id, media_id, user_id })
         .first()
         .then(async (response) => {
+            console.log("**", { response, tag_id, media_id, user_id });
             if (!response) {
-                await getTagsMediaTable().insert({ tag_id, media_id, user_id });
+                await connection;
+                await getTagsMediaTable()
+                    .insert({
+                        tag_id: tag_id,
+                        media_id: media_id,
+                        user_id: user_id,
+                    })
+                    .catch((er) => {
+                        console.error("error add tag ", er);
+                        throw new Error(er);
+                    });
             } else {
                 await getTagsMediaTable()
                     .where({ tag_id, user_id, media_id })
@@ -424,5 +453,5 @@ export async function dbGetMediaTagsForUser(media_id: string, user_id: number) {
     return getTagsMediaTable()
         .select("tag_id as id", "enabled")
         .where({ user_id })
-        .andWhere("media_id", "like", `%${media_id}%`);
+        .andWhere({ media_id });
 }

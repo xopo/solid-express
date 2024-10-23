@@ -154,3 +154,11 @@ button.icon:active {
         margin-top: 2em;
     }
 }
+.hide-scroll {
+    overflow: hidden; /* Prevents scrolling */
+    scrollbar-width: none; /* Firefox */
+}
+
+.hide-scroll::-webkit-scrollbar {
+    display: none; /* Chrome and Safari */
+}

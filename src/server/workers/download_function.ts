@@ -1,6 +1,6 @@
 import { parentPort, workerData } from "worker_threads";
 import { downloadMediaData, downloadFile } from "../routes/apihelper";
-import { grabImage } from "../grabber/grab";
+import { grabImage, writeStream2File } from "../grabber/grab";
 import {
     dbRemoveCompletedMedia,
     dbUpdateWaitingMediaId,
@@ -11,6 +11,7 @@ import {
     dbAddMediaToUser,
     dbAddNewDescription,
     descriptionInDb,
+    dbSetMediaTags,
 } from "../db/queries";
 import { imageWithTitleExists } from "../grabber/grab";
 
@@ -31,7 +32,6 @@ const setCompleted = () => {
 // do the db diligence related to updating tables
 async function getDetails(id: number, media_id: string) {
     const details = await downloadMediaData(workerData.url);
-    // no details -> exit
     if (!details) {
         console.error(
             `\n\bWorker error on download ${workerData.url}, will exit now!\n\n`,
@@ -43,6 +43,9 @@ async function getDetails(id: number, media_id: string) {
         setCompleted();
     }
 
+    // write details to file for debug in dev
+    writeStream2File(`/tmp/${details.id}.json`, details, "development");
+
     // it is possible that id's are not the same
     if (details.id !== media_id) {
         await dbUpdateWaitingMediaId(id, details.id);
@@ -50,6 +53,14 @@ async function getDetails(id: number, media_id: string) {
     await dbUpdateWaitingMediaStatus(id, "details");
     return details;
 }
+
+type WorkerData = {
+    id: number;
+    media_id: string;
+    url: string;
+    user_id: number;
+    tags: string[];
+};
 
 // get image for the file
 //@ts-ignore
@@ -60,7 +71,7 @@ async function getImage(title: string, details, media) {
 
 async function getMedia() {
     console.log("\n\n Worder get media\n\n");
-    const { id, media_id, url, user_id } = workerData;
+    const { id, media_id, url, user_id, tags } = workerData as WorkerData;
     try {
         const details = await getDetails(id, media_id);
         console.log("-- details", { id, url, user_id });
@@ -71,13 +82,16 @@ async function getMedia() {
         if (!(await dbFileExists(details.id))) {
             const file = await dbAddNewFile(details.id, title);
             await dbAddMediaToUser(file[0], user_id);
-            await dbUpdateWaitingMediaStatus(media_id, "details");
+            if (tags?.length > 0) {
+                await dbSetMediaTags(media_id, user_id, tags);
+            }
+            await dbUpdateWaitingMediaStatus(id, "details");
         } else {
             console.log("-- dbFileExists");
         }
         if (!(await descriptionInDb(details.id))) {
             await dbAddNewDescription(details);
-            await dbUpdateWaitingMediaStatus(media_id, "waiting");
+            await dbUpdateWaitingMediaStatus(id, "waiting");
         } else {
             console.error("-- details description already in db");
         }

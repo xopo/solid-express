@@ -1,11 +1,13 @@
 import { Show, createSignal } from "solid-js";
-
 import { effect, Portal } from "solid-js/web";
 import { validateInputUrl } from "../../helpers/validate";
 import { apiSubmitNewMedia } from "../../api";
 import WaitingFiles from "../table/WaitingFiles";
-import "./add_media.scss";
 import Loading from "../common/LoadComponent";
+import { DownloadScrollList } from "../common/scroll-list/ScrollList";
+import { useMp3Context } from "../../context/appContext";
+
+import "./add_media.scss";
 
 export type NewFile = {
     id: string;
@@ -13,9 +15,9 @@ export type NewFile = {
     url: string;
 };
 
-/* Todo - do some shit */
 export default function AddMedia() {
-    const [showModal, setShowModal] = createSignal(false);
+    const { showModal, setShowModal, downloadTags, resetDownloadTags } =
+        useMp3Context();
     const [url, setUrl] = createSignal("");
     const [error, setError] = createSignal("");
     const [waiting, setWaiting] = createSignal<string>("");
@@ -53,7 +55,7 @@ export default function AddMedia() {
 
     const submit = async () => {
         setWaiting(url());
-        const result = await apiSubmitNewMedia(url());
+        const result = await apiSubmitNewMedia(url(), downloadTags());
         if (result.success === true) {
             setNewFiles((prev) =>
                 result.data.waiting ? [...prev, result.data.waiting] : prev,
@@ -62,6 +64,7 @@ export default function AddMedia() {
         setUrl("");
         setError("");
         setWaiting("");
+        resetDownloadTags();
         inputRef.value = "";
     };
 
@@ -109,7 +112,9 @@ export default function AddMedia() {
                         </div>
                         <div class="row">
                             <label>Pick a folder </label>
-                            <div id="folder">#Todo</div>
+                            <div id="folder">
+                                <DownloadScrollList />
+                            </div>
                         </div>
                         <div class="row">
                             <button

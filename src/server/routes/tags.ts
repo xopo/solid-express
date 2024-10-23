@@ -28,7 +28,7 @@ tagsRoute.get<{ id: string }, any, any, any>(
     lazyCatch(async (req, res) => {
         const { user } = req.session;
         const { id } = req.params;
-        const sanitizedId = atob(id).replace(/[^a-zA-Z\s0-9_]/gi, "");
+        const sanitizedId = atob(id).replace(/[^a-zA-Z\s0-9_-]/gi, "");
         res.json({ data: await dbGetMediaTagsForUser(sanitizedId, user.id) });
     }),
 );

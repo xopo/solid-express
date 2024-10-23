@@ -67,7 +67,10 @@ contentRoute.post<any, any, any, { url: string }>(
     isAuthorized,
     validate(uriSchema),
     lazyCatch(async (req, res) => {
-        const { url } = req.body;
+        const { url, tags } = req.body;
+        const cleanTags = tags.map((tag: string) =>
+            tag.replace(/[^a-z0-9]/gi, ""),
+        );
         try {
             const { id, type } = extractMediaMetaFromUrl(url);
             if (!id || !type) {
@@ -99,6 +102,7 @@ contentRoute.post<any, any, any, { url: string }>(
                     media_id: id,
                     url,
                     user_id: req.session.user.id,
+                    tags: cleanTags,
                 });
 
                 if (worker) {

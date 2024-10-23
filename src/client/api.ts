@@ -58,8 +58,7 @@ const get = async <T>(url: string): Promise<ApiResponse<T>> => {
 };
 
 export const getTags = async () => {
-    const result = await get<{ id: number; name: string }>("tags");
-    console.log("get content result", result);
+    const result = await get<{ id: number; name: string }[]>("tags");
     return result?.data || [];
 };
 
@@ -115,11 +114,11 @@ export const apiGetLabelsFor = (media_id: string) => async () => {
     return data || [];
 };
 
-export async function apiSubmitNewMedia(url: string) {
+export async function apiSubmitNewMedia(url: string, tags: string[]) {
     return post<
         | { success?: boolean; waiting?: NewFile }
         | { success: true; waiting: NewFile }
-    >("content/add", { url });
+    >("content/add", { url, tags });
 }
 
 export type DownloadMedia = {
