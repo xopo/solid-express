@@ -227,7 +227,7 @@ export default function MediaPlayer({ pick, action }: PlayerPops) {
                     controls
                 >
                     <source
-                        src={getMp3Link(playing()?.name)}
+                        src={getMp3Link(playing()!.name)}
                         type="audio/mpeg"
                     ></source>
                 </audio>
