@@ -39,6 +39,7 @@ export type WaitingMedia = {
     status: string | null;
     acknowledge: string;
     user_id: number;
+    tags: string;
 };
 
 export type WaitingFile = {
@@ -90,11 +91,20 @@ export const dbCheckFileExists = async (media_id: string, url: string) =>
 export const dbCheckWaitingMedia = async (media_id: string, url: string) =>
     getWaitingTable().where({ media_id }).orWhere({ url }).first();
 
+export const getTagIdsFromName = (tags: string[]) => {
+    return getTagsUsersTable()
+        .select<{ id: number }>("t.id")
+        .leftJoin("tags as t", "t.id", "ti.tag_id")
+        .whereIn("t.name", tags)
+        .pluck<number[]>("id");
+};
+
 export const dbInsertNewMedia = async (
     media_id: string,
     url: string,
     user_id: number,
-) => getWaitingTable().insert({ media_id, url, user_id });
+    tags: string,
+) => getWaitingTable().insert({ media_id, url, user_id, tags });
 
 export const dbGetWaitingMedia = async (user_id: number, limit = 100) =>
     getWaitingTable()
@@ -133,7 +143,7 @@ export const dbGetFirstWaitingMedia = async () =>
     getWaitingTable()
         .select<
             WaitingMedia & { name: string; add_time: string; retry: number }
-        >("wm.id", "wm.url", "wm.media_id", "f.name", "f.add_time", "wm.retry", "um.user_id")
+        >("wm.id", "wm.url", "wm.media_id", "f.name", "f.add_time", "wm.retry", "um.user_id", connection.raw("JSON_EXTRACT(wm.tags, '$') AS tags"))
         .leftJoin("files as f", "f.media_id", "wm.media_id")
         .leftJoin("user_media as um", "f.id", "um.file_id")
         .orderBy("wm.id", "asc")
@@ -375,11 +385,10 @@ export async function dbUpdateFileStatus(media_id: string, completed: boolean) {
 export async function dbSetMediaTags(
     media_id: string,
     user_id: number,
-    tags: string[],
+    tags: number[],
 ) {
-    const tagIds = await getTagsTable().select("id").whereIn("name", tags);
-    const insertTags = tagIds.map((tag) =>
-        getTagsMediaTable().insert({ media_id, user_id, tag_id: tag.id }),
+    const insertTags = tags.map((tag) =>
+        getTagsMediaTable().insert({ media_id, user_id, tag_id: tag }),
     );
     await Promise.all(insertTags).catch((er) => {
         throw new Error(er);
@@ -436,13 +445,20 @@ export async function dbAddLabelIfNotExists(name: string) {
 }
 
 export async function dbGetUsersTags(user_id: number) {
-    console.log("*** userid: ", user_id);
-    return getTagsMediaTable()
+    return getTagsUsersTable()
         .select("t.id", "t.name")
-        .leftJoin("tags as t", "t.id", "tm.tag_id")
-        .where("tm.enabled", 1)
-        .where("tm.user_id", user_id)
-        .groupBy("t.id");
+        .count({ media_count: "mt.media_id" })
+        .leftJoin("tags as t", "t.id", "ti.tag_id")
+        .leftJoin("tags_media as mt", function () {
+            this.on("mt.tag_id", "=", "t.id").andOn(
+                "mt.user_id",
+                "=",
+                "ti.user_id",
+            );
+        })
+        .where("ti.user_id", user_id)
+        .groupBy("t.id")
+        .orderBy("media_count", "desc");
 }
 
 export async function dbAddLabel2UserIfNotExist(name: string, user_id: number) {

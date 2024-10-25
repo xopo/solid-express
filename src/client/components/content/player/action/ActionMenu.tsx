@@ -5,17 +5,19 @@ import SvgIcon from "../../../common/SvgIcon";
 import "./action-menu.scss";
 import { Show } from "solid-js";
 import TagsModal from "../../../modal/TagsModal";
+import { getMp3Link } from "../../../common/helpers/media";
 export type ActionMenuProps = {
     entry: EntryData;
+    disable: () => void;
 };
 
-export default function ActionMenu({ entry }: ActionMenuProps) {
+export default function ActionMenu({ entry, disable }: ActionMenuProps) {
     const { refetchContent } = useMp3Context();
     const [showTagsModal, setShowTagsModal] = createSignal(false);
-    function onSave(ev: MouseEvent) {
-        ev.stopPropagation();
-        console.log("Save", entry);
-    }
+    // function onSave(ev: MouseEvent) {
+    //     ev.stopPropagation();
+    //     console.log("Save", entry);
+    // }
 
     async function onDownload(ev: MouseEvent) {
         ev.stopPropagation();
@@ -27,6 +29,7 @@ export default function ActionMenu({ entry }: ActionMenuProps) {
         ev.stopPropagation();
         await apiDeleteMedia(entry.media_id);
         refetchContent();
+        disable();
     }
     return (
         <div class="action-menu" onclick={(e) => e.stopPropagation()}>
@@ -41,9 +44,9 @@ export default function ActionMenu({ entry }: ActionMenuProps) {
             >
                 <SvgIcon name="open_folder" size={28} />
             </button>
-            <button type="button" title="Save locally" onclick={onSave}>
+            <button type="button" title="Save locally">
                 <a
-                    href={`/assets/images/${entry.name}.mp3`}
+                    href={getMp3Link(entry.name)}
                     download={`${entry.title}.mp3`}
                 >
                     <SvgIcon name="download" size={28} />

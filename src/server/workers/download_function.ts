@@ -59,7 +59,7 @@ type WorkerData = {
     media_id: string;
     url: string;
     user_id: number;
-    tags: string[];
+    tags: number[];
 };
 
 // get image for the file

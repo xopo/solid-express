@@ -27,6 +27,7 @@ function moreThan5Minutes(date?: string): boolean {
 
 async function downloadOrphanMedia() {
     const orphan = await dbGetFirstWaitingMedia();
+    console.log({ orphan });
     if (!orphan || !moreThan5Minutes(orphan.add_time)) {
         console.log("orphan check exit");
         return;

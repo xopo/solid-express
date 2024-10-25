@@ -15,7 +15,7 @@ import {
     setLocalStorageVolume,
 } from "../../../helpers/storage";
 import { effect } from "solid-js/web";
-import BASE_URL from "../../../const";
+import { getMp3Link } from "../../common/helpers/media";
 
 import "./player.scss";
 
@@ -227,7 +227,7 @@ export default function MediaPlayer({ pick, action }: PlayerPops) {
                     controls
                 >
                     <source
-                        src={`${BASE_URL}media/${playing()?.name}.mp3`}
+                        src={getMp3Link(playing()?.name)}
                         type="audio/mpeg"
                     ></source>
                 </audio>

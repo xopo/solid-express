@@ -1,6 +1,6 @@
 import { NewFile } from "./components/media/AddMedia";
 import BASE_URL from "./const";
-import { EntryData } from "./context/appContext";
+import { EntryData, Tag } from "./context/appContext";
 
 type Error = {
     error: string;
@@ -58,7 +58,7 @@ const get = async <T>(url: string): Promise<ApiResponse<T>> => {
 };
 
 export const getTags = async () => {
-    const result = await get<{ id: number; name: string }[]>("tags");
+    const result = await get<Tag[]>("tags");
     return result?.data || [];
 };
 

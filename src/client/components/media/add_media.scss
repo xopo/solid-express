@@ -1,65 +1,71 @@
 @import "../../utils.scss";
 
 .icon.add_media {
-  width: 31px;
-  height: 29px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: unset;
-  padding: unset;
-  box-shadow: 0 0 6px #aaa;
-  outline: 1px solid #ddd;
-  position: fixed;
-  left: 2em;
-  bottom: 2em;
-  background-color: white;
-  &:hover,
-  &:active {
-    box-shadow: 0 0 6px lime;
-  }
-  @include mobile {
-    left: 10px;
-    bottom: 15px;
-  }
+    width: 31px;
+    height: 29px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: unset;
+    padding: unset;
+    box-shadow: 0 0 6px #aaa;
+    outline: 1px solid #ddd;
+    position: fixed;
+    left: 2em;
+    bottom: 2em;
+    background-color: white;
+    &:hover,
+    &:active {
+        box-shadow: 0 0 6px lime;
+    }
+    @include mobile {
+        left: 10px;
+        bottom: 15px;
+    }
 }
 
 .modal {
-  position: fixed;
-  top: 10%;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  max-width: 800px;
-  max-height: min(80%, 800px);
-  background: #fffefe;
-  margin: 0 auto;
-  padding: 2em;
-  z-index: 3;
-  box-shadow: 1px 0px 10px #999;
-  overflow: hidden;
-  & + .backdrop {
     position: fixed;
-    top: 0;
-    left: 0;
+    top: 10%;
     right: 0;
     bottom: 0;
-    width: 100vw;
-    height: 100vh;
-    background: #aaaaaa63;
-    z-index: 0;
+    left: 0;
+    max-width: 800px;
+    max-height: min(80%, 800px);
+    background: #fffefe;
+    margin: 0 auto;
+    padding: 2em;
+    z-index: 3;
+    box-shadow: 1px 0px 10px #999;
     overflow: hidden;
-  }
-  @include mobile {
-    padding: 0.5em;
-    margin: 0;
-    width: 100vw;
-    top: 5%;
-    height: 90vh;
-  }
+    & + .backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100vw;
+        height: 100vh;
+        background: #aaaaaa63;
+        z-index: 0;
+        overflow: hidden;
+    }
+    button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+    }
+    @include mobile {
+        padding: 0.5em;
+        margin: 0;
+        width: 100vw;
+        top: 5%;
+        height: 90vh;
+    }
 
-  ul:empty {
-    display: none;
-  }
+    ul:empty {
+        display: none;
+    }
 }

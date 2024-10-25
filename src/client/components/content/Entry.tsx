@@ -4,7 +4,7 @@ import SvgIcon from "../common/SvgIcon";
 import { Accessor, Show } from "solid-js";
 import ActionMenu from "./player/action/ActionMenu";
 import { EntryData } from "../../context/appContext";
-import BASE_URL from "../../const";
+import { getWebpLink } from "../common/helpers/media";
 import "./entry.scss";
 
 type MediaEntryProps = {
@@ -29,6 +29,12 @@ export default function MediaEntry({
     const showActionMenu = (ev: MouseEvent) => {
         ev.preventDefault();
         ev.stopImmediatePropagation();
+        console.log("set active ");
+        setActive(entry);
+    };
+
+    const disableMenu = (entry: EntryData) => {
+        console.log("disable menu for entry", entry);
         setActive(entry);
     };
 
@@ -58,13 +64,9 @@ export default function MediaEntry({
                 <picture
                     class="trigger"
                     onclick={onChangeMedia}
-                    data-url={`${BASE_URL}media/${entry.name}.webp`}
+                    data-url={getWebpLink(entry.name)}
                 >
-                    <source
-                        srcset={
-                            show ? `${BASE_URL}media/${entry.name}.webp` : "#"
-                        }
-                    />
+                    <source srcset={show ? getWebpLink(entry.name) : "#"} />
                     <img width="350" src={show ? entry.thumbnail : "#"} />
                 </picture>
             </div>
@@ -75,7 +77,10 @@ export default function MediaEntry({
                 </div>
                 <div class="action">
                     <Show when={active()?.name === entry.name}>
-                        <ActionMenu entry={entry} />
+                        <ActionMenu
+                            entry={entry}
+                            disable={() => disableMenu(entry)}
+                        />
                     </Show>
                     <button class="transparent" onClick={showActionMenu}>
                         <SvgIcon name="more_vert" />

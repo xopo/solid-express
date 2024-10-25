@@ -9,29 +9,30 @@ import {
 import BASE_URL from "../const";
 import { Accessor, Resource } from "solid-js";
 import { getContent, getTags } from "../api";
-import { effect } from "solid-js/web";
 
 export const Mp3Context = createContext<Mp3ContextType>({} as Mp3ContextType);
 
 type WithChildren = {
     children: any;
 };
-export type Tag = { id: number; name: string };
+export type Tag = { id: number; name: string; media_count: number };
 
 type Mp3ContextType = {
-    dbTags: Resource<never[] | Tag[]>;
-    content: Accessor<EntryData[] | undefined>;
-    downloadTags: Accessor<string[]>;
-    refetchContent: () => void;
-    serverMessage: Accessor<string | undefined>;
-    setTags: (s: string) => void;
-    toggleDownloadTag: (s: string) => void;
-    setDownloadTags: (s: string) => void;
-    resetDownloadTags: () => void;
-    showModal: Accessor<boolean>;
-    setShowModal: Setter<boolean>;
-    tags: Accessor<string[]>;
     cleanup: () => void;
+    content: Accessor<EntryData[] | undefined>;
+    dbTags: Resource<never[] | Tag[]>;
+    downloadTags: Accessor<string[]>;
+    onSearch: (s: string) => void;
+    refetchContent: () => void;
+    resetDownloadTags: () => void;
+    search: Accessor<string>;
+    serverMessage: Accessor<string | undefined>;
+    setDownloadTags: (s: string) => void;
+    setShowModal: Setter<boolean>;
+    setTags: (s: string) => void;
+    showModal: Accessor<boolean>;
+    tags: Accessor<string[]>;
+    toggleDownloadTag: (s: string) => void;
 };
 
 export type EntryData = {
@@ -55,9 +56,16 @@ export const Mp3Provider = (props: WithChildren) => {
     const [serverMessage, setServerMessage] = createSignal<string>();
     const [showModal, setShowModal] = createSignal(false);
     const [tags, setTags] = createSignal<string[]>([]);
+    const [search, setSearch] = createSignal<string>("");
     const [downloadTags, setDownloadTags] = createSignal<string[]>([]);
     const serverEvent = new EventSource(`${BASE_URL}api/newMedia`);
-    const [dbTags] = createResource(getTags);
+    let serverTags: Tag[];
+    const [dbTags, { mutate: mutateContent }] = createResource(() =>
+        getTags().then((data) => {
+            serverTags = data;
+            return data;
+        }),
+    );
     const [content, { refetch: refetchContent }] = createResource(
         tags,
         getContent,
@@ -92,24 +100,53 @@ export const Mp3Provider = (props: WithChildren) => {
     };
     const resetDownloadTags = () => setDownloadTags([]);
 
-    effect(() => console.log("dbtags", dbTags()));
-    effect(() => console.dir({ "--tags": tags() }));
-    effect(() => console.dir({ "--downloadTags": downloadTags() }));
+    const resetTagsSearch = () => {
+        setSearch("");
+    };
+
+    const onToggleShowModal = () => {
+        if (!showModal()) {
+            resetTagsSearch();
+        }
+        setShowModal(!showModal());
+    };
+
+    const onSearch = (term: string) => {
+        setSearch(term);
+        const searchList = term.toLowerCase().replace(/\s+/g, " ").split(" ");
+        if (term.trim().length === 0) {
+            mutateContent(serverTags);
+            return;
+        } else {
+            mutateContent(
+                serverTags.filter((tag) => {
+                    const tagName = tag.name.toLowerCase();
+                    for (let src of searchList) {
+                        if (src.includes(tagName) || tagName.includes(src)) {
+                            return true;
+                        }
+                    }
+                }),
+            );
+        }
+    };
 
     const contextValue = {
-        dbTags,
-        content,
-        refetchContent,
-        serverMessage,
-        tags,
-        setTags: toggleTag,
-        toggleDownloadTag,
-        showModal,
-        downloadTags,
-        setDownloadTags,
-        resetDownloadTags,
-        setShowModal,
         cleanup: () => serverEvent.close(),
+        content,
+        dbTags,
+        downloadTags,
+        onSearch,
+        refetchContent,
+        resetDownloadTags,
+        search,
+        serverMessage,
+        setDownloadTags,
+        setShowModal: onToggleShowModal,
+        setTags: toggleTag,
+        showModal,
+        tags,
+        toggleDownloadTag,
     };
     onCleanup(() => {
         serverEvent?.close();

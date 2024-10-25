@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { isAuthorized } from "./auth";
 import {
+    getTagIdsFromName,
     dbAddMediaToUser,
     dbCheckFileExists,
     dbCountUsersWithMedia,
@@ -71,6 +72,10 @@ contentRoute.post<any, any, any, { url: string }>(
         const cleanTags = tags.map((tag: string) =>
             tag.replace(/[^a-z0-9]/gi, ""),
         );
+        let tagIds: number[] = [];
+        if (cleanTags.length) {
+            tagIds = await getTagIdsFromName(tags);
+        }
         try {
             const { id, type } = extractMediaMetaFromUrl(url);
             if (!id || !type) {
@@ -83,6 +88,7 @@ contentRoute.post<any, any, any, { url: string }>(
                     id,
                     url,
                     req.session.user.id,
+                    JSON.stringify(tagIds),
                 );
 
                 const response = {
@@ -102,7 +108,7 @@ contentRoute.post<any, any, any, { url: string }>(
                     media_id: id,
                     url,
                     user_id: req.session.user.id,
-                    tags: cleanTags,
+                    tags: tagIds,
                 });
 
                 if (worker) {
@@ -188,6 +194,7 @@ contentRoute.post<any, any, any, { media_id: string; existing: boolean }>(
                     media_id,
                     media.url,
                     req.session.user.id,
+                    "[]",
                 );
             }
         }

@@ -13,7 +13,7 @@ function ScrollList({ tags, dbTags, set }: ScrollProps) {
     return (
         <ul class="folders hide-scroll">
             <Show when={dbTags()}>
-                <For each={dbTags()}>
+                <For each={dbTags()?.filter((tag) => tag?.media_count)}>
                     {(tag) => (
                         <li
                             classList={{ selected: tags().includes(tag.name) }}

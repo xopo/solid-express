@@ -8,6 +8,7 @@ import { DownloadScrollList } from "../common/scroll-list/ScrollList";
 import { useMp3Context } from "../../context/appContext";
 
 import "./add_media.scss";
+import SvgIcon from "../common/SvgIcon";
 
 export type NewFile = {
     id: string;
@@ -122,7 +123,8 @@ export default function AddMedia() {
                                 disabled={!!error() || url()?.length < 5}
                                 onclick={submit}
                             >
-                                {`${error() || "Download"}`} _|_
+                                {`${error() || "Download"}`}
+                                <SvgIcon name="download" />
                                 {waiting() && <Loading />}
                             </button>
                         </div>
