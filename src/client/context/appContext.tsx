@@ -100,17 +100,6 @@ export const Mp3Provider = (props: WithChildren) => {
     };
     const resetDownloadTags = () => setDownloadTags([]);
 
-    const resetTagsSearch = () => {
-        setSearch("");
-    };
-
-    const onToggleShowModal = () => {
-        if (!showModal()) {
-            resetTagsSearch();
-        }
-        setShowModal(!showModal());
-    };
-
     const onSearch = (term: string) => {
         setSearch(term);
         const searchList = term.toLowerCase().replace(/\s+/g, " ").split(" ");
@@ -142,7 +131,7 @@ export const Mp3Provider = (props: WithChildren) => {
         search,
         serverMessage,
         setDownloadTags,
-        setShowModal: onToggleShowModal,
+        setShowModal,
         setTags: toggleTag,
         showModal,
         tags,
