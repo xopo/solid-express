@@ -233,7 +233,7 @@ export default function MediaPlayer({ pick, action }: PlayerPops) {
                 </audio>
                 <div class="custom-player" classList={{ light: lightTheme() }}>
                     <div class={`title ${audioStatus()}`}>
-                        <div class="text">{playing()?.title}</div>
+                        <div class="text">{playing()?.title}--</div>
                     </div>
                     <div class="volume-time flex">
                         <div class="controls flex">
@@ -242,7 +242,7 @@ export default function MediaPlayer({ pick, action }: PlayerPops) {
                                 onclick={() => action("prev")}
                                 disabled={changingMedia()}
                             >
-                                <SvgIcon name="circle_next" />
+                                <SvgIcon size={32} name="circle_next" />
                             </button>
                             <button class="transparent" onClick={togglePlay}>
                                 <Show
@@ -262,7 +262,7 @@ export default function MediaPlayer({ pick, action }: PlayerPops) {
                                 onclick={() => action("next")}
                                 disabled={changingMedia()}
                             >
-                                <SvgIcon name="circle_next" />
+                                <SvgIcon size={32} name="circle_next" />
                             </button>
                             <button class="transparent" onClick={onStop}>
                                 <SvgIcon name="circle_stop" />
@@ -280,7 +280,7 @@ export default function MediaPlayer({ pick, action }: PlayerPops) {
                                 when={mute() === true}
                                 fallback={<SvgIcon name="volume_up" />}
                             >
-                                <SvgIcon name="volume_mute" />
+                                <SvgIcon size={32} name="volume_mute" />
                             </Show>
                         </button>
                         <input

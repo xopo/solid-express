@@ -162,21 +162,21 @@ button.icon:active {
 
 @media (prefers-color-scheme: light) {
     body {
-        background-color: white !important;
-        color: black !important;
+        background-color: white;
+        color: black;
     }
     button {
-        background: #f9f9f9 !important;
-        color: black !important;
+        background: #f9f9f9;
+        color: black;
     }
 }
 @media (prefers-color-scheme: dark) {
     body {
-        background-color: white !important;
-        color: black !important;
+        background-color: white;
+        color: black;
     }
     button {
-        background: #f9f9f9 !important;
-        color: black !important;
+        background: #f9f9f9;
+        color: black;
     }
 }

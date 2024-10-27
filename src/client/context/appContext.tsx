@@ -22,7 +22,7 @@ type Mp3ContextType = {
     content: Accessor<EntryData[] | undefined>;
     dbTags: Resource<never[] | Tag[]>;
     downloadTags: Accessor<string[]>;
-    onSearch: (s: string) => void;
+    onSearch: (s: string, k: string) => void;
     refetchContent: () => void;
     resetDownloadTags: () => void;
     search: Accessor<string>;
@@ -100,7 +100,11 @@ export const Mp3Provider = (props: WithChildren) => {
     };
     const resetDownloadTags = () => setDownloadTags([]);
 
-    const onSearch = (term: string) => {
+    const onSearch = (term: string, key: string) => {
+        if (key === "Escape") {
+            mutateContent(serverTags);
+            return;
+        }
         setSearch(term);
         const searchList = term.toLowerCase().replace(/\s+/g, " ").split(" ");
         if (term.trim().length === 0) {

@@ -1,4 +1,4 @@
-@import '../../../utils.scss';
+@import "../../../utils.scss";
 
 audio.hidden {
     visibility: hidden;
@@ -6,7 +6,14 @@ audio.hidden {
 }
 .custom-player {
     user-select: none;
-    background: linear-gradient(160deg, #14131e, #39395a, #3e418af5, #39395a, #14131e);
+    background: linear-gradient(
+        160deg,
+        #14131e,
+        #39395a,
+        #3e418af5,
+        #39395a,
+        #14131e
+    );
     width: min(400px, 100vw);
     padding-top: 9px;
     outline: 1px solid #aaaaaa45;
@@ -21,6 +28,9 @@ audio.hidden {
         top: 9px;
         left: 9px;
         right: 9px;
+    }
+    button {
+        background: transparent;
     }
     .title {
         background-color: #dcffbc;
@@ -51,7 +61,7 @@ audio.hidden {
     }
     .speed {
         cursor: pointer;
-        color: #bbb
+        color: #bbb;
     }
     .track {
         width: 97%;
@@ -91,11 +101,11 @@ audio.hidden {
         margin: 1em 0 1.5em;
         display: flex;
         justify-content: space-between;
-        [type='range'] {
+        [type="range"] {
             width: 80px;
             margin-right: 5px;
         }
-        svg[name*='volume'] path {
+        svg[name*="volume"] path {
             fill: #ddd;
         }
         button {
@@ -123,7 +133,8 @@ audio.hidden {
                     transform: rotate(180deg);
                 }
             }
-            &.prev, &.next {
+            &.prev,
+            &.next {
                 svg path {
                     fill: #bbb;
                 }
@@ -139,7 +150,9 @@ audio.hidden {
         padding-left: unset;
     }
     &.transparent {
-        &:hover, &:focus, &:active {
+        &:hover,
+        &:focus,
+        &:active {
             outline: 0px solid transparent;
             border: 0px solid transparent;
         }
@@ -152,12 +165,12 @@ audio.hidden {
         .volume-time svg path {
             fill: white;
         }
-        .controls svg[name*='circle_'] path{
+        .controls svg[name*="circle_"] path {
             fill: white;
         }
     }
     &::before {
-        content: '';
+        content: "";
         position: absolute;
         top: 2px;
         left: 2px;
@@ -190,13 +203,20 @@ audio.hidden {
 
     &.light {
         background: #f1f3f4;
-        &::before, &::after {
+        outline: 1px solid #020202;
+        border: 1px solid #dcffbc;
+        box-shadow: 0px 0px 19px #807777;
+        border-radius: 2px;
+        &::before,
+        &::after {
             content: unset;
         }
-        .duration, .speed {
+        .duration,
+        .speed {
             color: #777;
         }
-        svg path, .controls button:not(:disabled) svg path {
+        svg path,
+        .controls button:not(:disabled) svg path {
             fill: #777;
         }
         .controls button.disabled svg > path {
@@ -208,8 +228,6 @@ audio.hidden {
         }
     }
 }
-
-
 
 @keyframes text-animation {
     from {

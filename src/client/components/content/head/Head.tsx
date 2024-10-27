@@ -19,16 +19,17 @@ export default function Head() {
     effect(() => {
         if (showModal()) {
             setShow(false);
-            onSearch("");
+            onSearch("", "");
         }
     });
     let iRef: HTMLInputElement;
     let myTime: number;
-    const updateTag = () => {
+    const updateTag = (ev: KeyboardEvent) => {
+        console.log(ev);
         if (myTime) clearTimeout(myTime);
         const clean = iRef.value.replace(/[^a-zA-Z\s0-9]/gi, "");
         myTime = window.setTimeout(() => {
-            onSearch(clean);
+            onSearch(clean, ev.code);
             iRef.value = clean;
         }, 500);
     };
