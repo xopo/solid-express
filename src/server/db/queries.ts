@@ -285,7 +285,7 @@ export const dbGetDetailsByMediaId = (media_id: string) => {
 export async function dbGetUserContent(
     user_id: number,
     page: number,
-    limit = 50,
+    limit = 30,
     tags?: string,
 ) {
     return await getFilesTable()
@@ -311,7 +311,7 @@ export async function dbGetUserContentByTags(
     user_id: number,
     tags: string[],
     page: number,
-    limit = 50,
+    limit = 30,
 ) {
     const offset = page * limit;
     const tagIds = await getTagsTable().select("id").whereIn("name", tags);

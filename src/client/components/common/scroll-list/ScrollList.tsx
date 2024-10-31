@@ -1,4 +1,5 @@
-import { For, Show, Accessor, Resource } from "solid-js";
+import { Accessor, Resource } from "solid-js";
+import { For, Show } from "solid-js/web";
 import { useMp3Context, Tag } from "../../../context/appContext";
 import "./scrolllist.scss";
 
@@ -14,8 +15,10 @@ function ScrollList({ tags, dbTags, set }: ScrollProps) {
         <>
             <ul class="folders hide-scroll">
                 <Show when={dbTags()}>
-                    <For each={dbTags()?.filter((tag) => tag?.media_count)}>
-                        {(tag) => (
+                    <For
+                        each={dbTags()?.filter((tag: Tag) => tag?.media_count)}
+                    >
+                        {(tag: Tag) => (
                             <li
                                 classList={{
                                     selected: tags().includes(tag.name),
@@ -28,7 +31,6 @@ function ScrollList({ tags, dbTags, set }: ScrollProps) {
                     </For>
                 </Show>
             </ul>
-            <hr id="bottomline" />
         </>
     );
 }

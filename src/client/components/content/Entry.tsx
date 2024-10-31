@@ -1,7 +1,8 @@
 import { date2String } from "../../helpers/time";
 import { getMediumFromUrl } from "../../helpers/utils";
 import SvgIcon from "../common/SvgIcon";
-import { Accessor, Show } from "solid-js";
+import { Accessor } from "solid-js";
+import { Show } from "solid-js/web";
 import ActionMenu from "./player/action/ActionMenu";
 import { EntryData } from "../../context/appContext";
 import { getWebpLink } from "../common/helpers/media";

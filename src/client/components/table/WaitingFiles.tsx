@@ -1,10 +1,4 @@
-import {
-    Accessor,
-    For,
-    createEffect,
-    createResource,
-    createSignal,
-} from "solid-js";
+import { Accessor, createEffect, createResource, createSignal } from "solid-js";
 import {
     Waiting,
     apiDeleteWaiting,
@@ -15,7 +9,7 @@ import { date2String } from "../../helpers/time";
 import "./waiting-files.scss";
 import SvgIcon from "../common/SvgIcon";
 import { useMp3Context } from "../../context/appContext";
-import { effect } from "solid-js/web";
+import { For } from "solid-js/web";
 import { NewFile } from "../media/AddMedia";
 import Loading from "../common/LoadComponent";
 
@@ -51,7 +45,7 @@ export default function WaitingFiles({ hide, newFiles, resetNewFiles }: Props) {
         }
     });
 
-    effect(() => {
+    createEffect(() => {
         console.log(" get files", files());
         if (files() !== undefined) {
             console.log("reset new files");
@@ -62,7 +56,7 @@ export default function WaitingFiles({ hide, newFiles, resetNewFiles }: Props) {
     return (
         <ul class="download">
             <For each={newFiles()}>
-                {(file) => (
+                {(file: NewFile) => (
                     <div class="flex temp">
                         <div>{file.url}</div>
                         <div class="last">

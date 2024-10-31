@@ -32,9 +32,12 @@ contentRoute.get(
     isAuthorized,
     lazyCatch(async (req, res) => {
         const { id } = req.session.user;
-        const { page, limit } = req.query;
+        const { page } = req.query;
         const content = id
-            ? await dbGetUserContent(req.session.user.id, page, limit)
+            ? await dbGetUserContent(
+                  req.session.user.id,
+                  parseInt(page as `${number}`, 10),
+              )
             : [];
         res.json({ success: true, data: content });
     }),
@@ -54,7 +57,7 @@ contentRoute.post<any, any, any, { tags: string }>(
             ? await dbGetUserContentByTags(
                   req.session.user.id,
                   cleanTags,
-                  parseInt(page),
+                  parseInt((page as `${number}`) || "0"),
               )
             : [];
         res.json({ success: true, data: content });

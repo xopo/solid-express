@@ -1,7 +1,7 @@
 import {
     Setter,
     createContext,
-    createEffect,
+    createMemo,
     createResource,
     createSignal,
     onCleanup,
@@ -55,6 +55,7 @@ export type EntryData = {
 };
 
 const nowSeconds = () => new Date().getTime() / 100;
+let mediaHolder: EntryData[] = [];
 
 export const Mp3Provider = (props: WithChildren) => {
     const [serverMessage, setServerMessage] = createSignal<string>();
@@ -74,7 +75,6 @@ export const Mp3Provider = (props: WithChildren) => {
         }),
     );
 
-    const [media, setMedia] = createSignal<EntryData[]>([]);
     const [content, { refetch: refetchContent }] = createResource(
         { tags, page },
         getContent,
@@ -101,18 +101,25 @@ export const Mp3Provider = (props: WithChildren) => {
         }
     };
 
-    createEffect(() => {
-        let newMedia: EntryData[] = [];
-        if (page() === 1) {
-            console.log("update media for page 1");
-            newMedia = content() || [];
-        } else {
-            console.info("update media for next page");
-            newMedia = [...media(), ...(content() || [])];
+    const media = createMemo(() => {
+        const previous = new Set<string>();
+        const prevContent = content() || [];
+        for (let i = 0; i < mediaHolder.length; i++) {
+            previous.add(mediaHolder[i].media_id);
         }
-        console.log("new media length", newMedia.length);
-        setMedia(newMedia);
-        debugger;
+        if (page() === 1) {
+            mediaHolder = prevContent;
+        } else {
+            const newMedia = prevContent.filter((entry) => {
+                if (previous.has(entry.media_id)) {
+                    return false;
+                }
+                previous.add(entry.media_id);
+                return true;
+            });
+            mediaHolder = [...mediaHolder, ...newMedia];
+        }
+        return mediaHolder;
     });
 
     serverEvent.onerror = (e) => console.error(e.toString());
