@@ -42,7 +42,6 @@ const durationFromTxt = (duration?: string): number => {
             Number(expanded[2] || 0) * 3600
         );
     }
-    console.log("bad duration string");
     return 100;
 };
 

@@ -17,6 +17,11 @@ ul.download {
             justify-content: center;
         }
     }
+    .delete {
+        display: flex;
+        justify-content: space-between;
+        margin-right: 15px;
+    }
     .waiting {
         .content {
             position: relative;

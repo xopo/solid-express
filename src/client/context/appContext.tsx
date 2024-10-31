@@ -1,6 +1,7 @@
 import {
     Setter,
     createContext,
+    createEffect,
     createResource,
     createSignal,
     onCleanup,
@@ -22,6 +23,7 @@ type Mp3ContextType = {
     content: Accessor<EntryData[] | undefined>;
     dbTags: Resource<never[] | Tag[]>;
     downloadTags: Accessor<string[]>;
+    goNextPage: () => void;
     onSearch: (s: string, k: string) => void;
     refetchContent: () => void;
     resetDownloadTags: () => void;
@@ -52,24 +54,43 @@ export type EntryData = {
     upload_url: string;
 };
 
+const nowSeconds = () => new Date().getTime() / 100;
+
 export const Mp3Provider = (props: WithChildren) => {
     const [serverMessage, setServerMessage] = createSignal<string>();
+    const [page, setPage] = createSignal(1);
     const [showModal, setShowModal] = createSignal(false);
     const [tags, setTags] = createSignal<string[]>([]);
     const [search, setSearch] = createSignal<string>("");
     const [downloadTags, setDownloadTags] = createSignal<string[]>([]);
+    const [lastRequest, setLastRequest] = createSignal(nowSeconds());
     const serverEvent = new EventSource(`${BASE_URL}api/newMedia`);
     let serverTags: Tag[];
+
     const [dbTags, { mutate: mutateContent }] = createResource(() =>
         getTags().then((data) => {
             serverTags = data;
             return data;
         }),
     );
+
+    const [media, setMedia] = createSignal<EntryData[]>([]);
     const [content, { refetch: refetchContent }] = createResource(
-        tags,
+        { tags, page },
         getContent,
     );
+
+    const goNextPage = () => {
+        let thisNow = nowSeconds();
+        console.log(thisNow, thisNow - lastRequest());
+        if (thisNow - lastRequest() < 2) {
+            console.error("too soon");
+            return;
+        }
+        setLastRequest(thisNow);
+        setPage(page() + 1);
+        setTimeout(refetchContent, 100);
+    };
 
     serverEvent.onmessage = (msg: any) => {
         if (msg.data !== serverMessage) {
@@ -79,6 +100,20 @@ export const Mp3Provider = (props: WithChildren) => {
             }
         }
     };
+
+    createEffect(() => {
+        let newMedia: EntryData[] = [];
+        if (page() === 1) {
+            console.log("update media for page 1");
+            newMedia = content() || [];
+        } else {
+            console.info("update media for next page");
+            newMedia = [...media(), ...(content() || [])];
+        }
+        console.log("new media length", newMedia.length);
+        setMedia(newMedia);
+        debugger;
+    });
 
     serverEvent.onerror = (e) => console.error(e.toString());
     serverEvent.onopen = (e) =>
@@ -126,9 +161,10 @@ export const Mp3Provider = (props: WithChildren) => {
 
     const contextValue = {
         cleanup: () => serverEvent.close(),
-        content,
+        content: media,
         dbTags,
         downloadTags,
+        goNextPage,
         onSearch,
         refetchContent,
         resetDownloadTags,

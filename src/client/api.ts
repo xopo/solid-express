@@ -1,6 +1,7 @@
 import { NewFile } from "./components/media/AddMedia";
 import BASE_URL from "./const";
 import { EntryData, Tag } from "./context/appContext";
+import { Accessor } from "solid-js";
 
 type Error = {
     error: string;
@@ -62,12 +63,19 @@ export const getTags = async () => {
     return result?.data || [];
 };
 
-export const getContent = async (tags: string[]) => {
+export const getContent = async (args: {
+    tags: Accessor<string[]>;
+    page: Accessor<number>;
+}) => {
+    const { tags, page } = args;
+    let pageDetail = { page: `${page()}` };
+    const url = new URLSearchParams(pageDetail).toString();
+    console.log({ page: page(), pageDetail, url });
+    const reqString = `content?${url}`;
     const result =
         tags.length > 0
-            ? await post<EntryData[]>("content", { tags })
-            : await get<EntryData[]>("content");
-    console.log("get content result", result);
+            ? await post<EntryData[]>(reqString, { tags: tags() })
+            : await get<EntryData[]>(reqString);
     return result?.data || [];
 };
 

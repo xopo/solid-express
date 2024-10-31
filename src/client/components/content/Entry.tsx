@@ -14,6 +14,7 @@ type MediaEntryProps = {
     setActive: (entry: EntryData) => void;
     addElement: (el: any) => void;
     visible: Accessor<string[]>;
+    isLast: boolean;
 };
 
 export default function MediaEntry({
@@ -23,18 +24,16 @@ export default function MediaEntry({
     setActive,
     addElement,
     visible,
+    isLast,
 }: MediaEntryProps) {
     const medium = getMediumFromUrl(entry.url);
-
     const showActionMenu = (ev: MouseEvent) => {
         ev.preventDefault();
         ev.stopImmediatePropagation();
-        console.log("set active ");
         setActive(entry);
     };
 
     const disableMenu = (entry: EntryData) => {
-        console.log("disable menu for entry", entry);
         setActive(entry);
     };
 
@@ -49,6 +48,7 @@ export default function MediaEntry({
     return (
         <li
             class="entry"
+            classList={{ lastentry: isLast }}
             data-id={entry.media_id}
             ref={(el) => addElement((prev: any[]) => [...prev, el])}
         >

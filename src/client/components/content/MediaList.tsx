@@ -7,13 +7,15 @@ import { createIntersectionObserver } from "@solid-primitives/intersection-obser
 import "./media_list.scss";
 
 export default function MediaList() {
+    let observer: IntersectionObserver;
     const [pick, setNewEntry] = createSignal<EntryData | undefined>();
     //@ts-ignore
     const [visible, setVisible] = createSignal<string[]>([]);
     const [activeDetail, setActiveDetail] = createSignal<
         EntryData | undefined
     >();
-    const { content, serverMessage, refetchContent, cleanup } = useMp3Context();
+    const { content, serverMessage, refetchContent, cleanup, goNextPage } =
+        useMp3Context();
 
     const [targets, setTargets] = createSignal<Element[]>([]);
 
@@ -25,9 +27,28 @@ export default function MediaList() {
         }
     };
 
+    function bottomScrooll(
+        entries: IntersectionObserverEntry[],
+        observer: IntersectionObserver,
+    ) {
+        console.log({ entries, observer });
+        entries.forEach((entry: IntersectionObserverEntry) => {
+            //@ts-ignore
+            if (entry.isIntersecting) {
+                observer.unobserve(entry.target);
+                entry.target.classList.remove("lastentry");
+                goNextPage();
+            }
+        });
+    }
+
     onMount(() => {
-        const { innerWidth, innerHeight } = window;
-        console.log("--here ", innerHeight, innerWidth);
+        // const root = document.querySelector("#root");
+        observer = new IntersectionObserver(bottomScrooll, {
+            // root,
+            // rootMargin: "0px",
+            // threshold: 1.0,
+        });
     });
 
     createIntersectionObserver(targets, (entries, observer) => {
@@ -73,7 +94,13 @@ export default function MediaList() {
     onCleanup(cleanup);
 
     createEffect(() => {
-        console.log("visible targets", visible());
+        //@ts-ignore
+        if (content()?.length > 0) {
+            const target = document.querySelector(".lastentry");
+            if (target) {
+                observer.observe(target);
+            }
+        }
     });
 
     const fewMedia = () => {
@@ -86,7 +113,7 @@ export default function MediaList() {
             <MediaPlayer pick={pick} action={changeDirection} />
             <ul class="media-list" classList={{ small: fewMedia() }}>
                 <For each={content()}>
-                    {(entry) => (
+                    {(entry, idx) => (
                         <MediaEntry
                             changeMedia={setNewEntry}
                             entry={entry}
@@ -94,6 +121,7 @@ export default function MediaList() {
                             setActive={toggleActive}
                             addElement={setTargets}
                             visible={visible}
+                            isLast={content()?.length === idx() + 1}
                         />
                     )}
                 </For>

@@ -11,20 +11,25 @@ type ScrollProps = {
 function ScrollList({ tags, dbTags, set }: ScrollProps) {
     if (!dbTags) return null;
     return (
-        <ul class="folders hide-scroll">
-            <Show when={dbTags()}>
-                <For each={dbTags()?.filter((tag) => tag?.media_count)}>
-                    {(tag) => (
-                        <li
-                            classList={{ selected: tags().includes(tag.name) }}
-                            onClick={() => set(tag.name)}
-                        >
-                            {tag.name}
-                        </li>
-                    )}
-                </For>
-            </Show>
-        </ul>
+        <>
+            <ul class="folders hide-scroll">
+                <Show when={dbTags()}>
+                    <For each={dbTags()?.filter((tag) => tag?.media_count)}>
+                        {(tag) => (
+                            <li
+                                classList={{
+                                    selected: tags().includes(tag.name),
+                                }}
+                                onClick={() => set(tag.name)}
+                            >
+                                {tag.name}
+                            </li>
+                        )}
+                    </For>
+                </Show>
+            </ul>
+            <hr id="bottomline" />
+        </>
     );
 }
 

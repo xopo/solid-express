@@ -282,7 +282,12 @@ export const dbGetDetailsByMediaId = (media_id: string) => {
 
 // GET Content
 
-export async function dbGetUserContent(user_id: number, tags?: string) {
+export async function dbGetUserContent(
+    user_id: number,
+    page: number,
+    limit = 50,
+    tags?: string,
+) {
     return await getFilesTable()
         .select("f.name", "f.add_time", "d.*")
         .leftJoin("user_media as um", "um.file_id", "f.id")
@@ -297,12 +302,19 @@ export async function dbGetUserContent(user_id: number, tags?: string) {
                 }
             }
         })
-        .orderBy("f.add_time", "desc");
+        .orderBy("f.add_time", "desc")
+        .limit(limit)
+        .offset((page - 1) * limit);
 }
 
-export async function dbGetUserContentByTags(user_id: number, tags: string[]) {
+export async function dbGetUserContentByTags(
+    user_id: number,
+    tags: string[],
+    page: number,
+    limit = 50,
+) {
+    const offset = page * limit;
     const tagIds = await getTagsTable().select("id").whereIn("name", tags);
-
     console.log("__** get user content by tags", { user_id, tags, tagIds });
     return (
         getFilesTable()
@@ -326,6 +338,8 @@ export async function dbGetUserContentByTags(user_id: number, tags: string[]) {
                     //     );
                     // })
                     .where({ enabled: 1, user_id })
+                    .limit(limit)
+                    .offset(offset)
                     .groupBy("tm.media_id");
             })
             // .modify(function (QueryBuilder) {
