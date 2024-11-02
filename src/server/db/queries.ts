@@ -304,7 +304,7 @@ export async function dbGetUserContent(
         })
         .orderBy("f.add_time", "desc")
         .limit(limit)
-        .offset((page - 1) * limit);
+        .offset(page * limit);
 }
 
 export async function dbGetUserContentByTags(

@@ -9,7 +9,7 @@ let workerPool: Record<string, Worker | undefined> = {};
 
 function getWorker(id: string, data: unknown) {
     const workers = Object.keys(workerPool).length;
-    if (workers > serverCpus / 2) {
+    if (workers > serverCpus - 2) {
         return;
     }
     if (!workerPool[id]) {

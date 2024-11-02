@@ -63,18 +63,14 @@ export const getTags = async () => {
     return result?.data || [];
 };
 
-export const getContent = async (args: {
-    tags: Accessor<string[]>;
-    page: Accessor<number>;
-}) => {
+export const getContent = async (args: { tags: string[]; page: number }) => {
     const { tags, page } = args;
-    let pageDetail = { page: `${page()}` };
+    let pageDetail = { page: `${page}` };
     const url = new URLSearchParams(pageDetail).toString();
-    console.log({ page: page(), pageDetail, url });
     const reqString = `content?${url}`;
     const result =
         tags.length > 0
-            ? await post<EntryData[]>(reqString, { tags: tags() })
+            ? await post<EntryData[]>(reqString, { tags })
             : await get<EntryData[]>(reqString);
     return result?.data || [];
 };

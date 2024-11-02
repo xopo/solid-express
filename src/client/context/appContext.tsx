@@ -59,7 +59,7 @@ let mediaHolder: EntryData[] = [];
 
 export const Mp3Provider = (props: WithChildren) => {
     const [serverMessage, setServerMessage] = createSignal<string>();
-    const [page, setPage] = createSignal(1);
+    const [page, setPage] = createSignal(0);
     const [showModal, setShowModal] = createSignal(false);
     const [tags, setTags] = createSignal<string[]>([]);
     const [search, setSearch] = createSignal<string>("");
@@ -75,14 +75,16 @@ export const Mp3Provider = (props: WithChildren) => {
         }),
     );
 
+    // this is derived object returned by function so that it will be reevalutated on each change of tas/page
+    const fetchArgs = () => ({ tags: tags(), page: page() });
+
     const [content, { refetch: refetchContent }] = createResource(
-        { tags, page },
+        fetchArgs,
         getContent,
     );
 
     const goNextPage = () => {
         let thisNow = nowSeconds();
-        console.log(thisNow, thisNow - lastRequest());
         if (thisNow - lastRequest() < 2) {
             console.error("too soon");
             return;
@@ -107,7 +109,7 @@ export const Mp3Provider = (props: WithChildren) => {
         for (let i = 0; i < mediaHolder.length; i++) {
             previous.add(mediaHolder[i].media_id);
         }
-        if (page() === 1) {
+        if (page() === 0) {
             mediaHolder = prevContent;
         } else {
             const newMedia = prevContent.filter((entry) => {
@@ -132,6 +134,8 @@ export const Mp3Provider = (props: WithChildren) => {
         } else {
             setTags([...tags(), tag]);
         }
+        // always reset page
+        setPage(0);
     };
     const toggleDownloadTag = (tag: string) => {
         if (downloadTags().includes(tag)) {
