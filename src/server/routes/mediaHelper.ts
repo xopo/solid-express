@@ -44,6 +44,10 @@ const extractFacebookId = (url: URL): string => {
             return url.searchParams.get("v") as string;
         } else if (url.pathname.includes("videos")) {
             return url.pathname.split("videos/")[1].split("/")[0];
+        } else if (url.pathname.includes("reel")) {
+            // expect to be the last segment of the path
+            // don't send href as it may contain query params ( flollow, share etc.. flags)
+            return lastSegmentFromPath(url.pathname);
         }
     }
     if (url.hostname.includes("fb.watch")) {
@@ -51,3 +55,6 @@ const extractFacebookId = (url: URL): string => {
     }
     throw new Error("[extractFacebookId] - cannot extract from url: " + url);
 };
+
+const lastSegmentFromPath = (pth: string, separator = "/") =>
+    pth.split(separator).reverse()[0];

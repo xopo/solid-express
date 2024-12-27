@@ -1,24 +1,42 @@
-.folders {
+@import "../../../utils.scss";
+.scrollList {
     display: flex;
+    max-width: 100vw;
     overflow: auto;
-    list-style: none;
-    padding-left: 0;
-    margin: 0;
-    cursor: pointer;
-    -webkit-overflow-scrolling: touch;
-    li {
-        white-space: nowrap;
-        color: #aaa;
-        background: #eee;
-        padding: 4px;
-        border-radius: 5px;
-        box-shadow: 1px 2px 4px #aaa;
-        margin: 4px;
-        &.selected {
-            color: black;
+    .folders {
+        display: flex;
+        overflow: auto;
+        list-style: none;
+        padding-left: 0;
+        margin: 0;
+        cursor: pointer;
+        -webkit-overflow-scrolling: touch;
+        li {
+            white-space: nowrap;
+            color: #aaa;
+            background: #eee;
+            padding: 4px;
+            border-radius: 5px;
+            box-shadow: 1px 2px 4px #aaa;
+            margin: 4px;
+            &.selected {
+                color: black;
+            }
+            + li {
+                margin-left: 10px;
+            }
         }
-        + li {
-            margin-left: 10px;
+    }
+    nav {
+        margin-left: 11px;
+        text-align: left;
+        display: flex;
+        align-items: center;
+        .hidden {
+            display: none;
+        }
+        @include mobile {
+            text-align: center;
         }
     }
 }

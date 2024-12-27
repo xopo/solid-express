@@ -22,5 +22,4 @@ export const EventTypes = {
     WORKER: "worder_event",
 };
 
-console.log("_---here make event emitter", { eventEmitter });
 export default eventEmitter();

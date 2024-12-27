@@ -1,7 +1,6 @@
 import { NewFile } from "./components/media/AddMedia";
 import BASE_URL from "./const";
 import { EntryData, Tag } from "./context/appContext";
-import { Accessor } from "solid-js";
 
 type Error = {
     error: string;

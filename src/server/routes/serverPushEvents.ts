@@ -77,26 +77,20 @@ const processMessage = async (user_id: number, res: Response) => {
     }
 };
 
+const listener =
+    (res: Response) => (data: { type: string; media_id?: string }) => {
+        res.write(`data: media ${data.type} ${data.media_id || ""} \n\n`);
+    };
+
 sseRoute.get("/", isAuthorized, async (req, res: Response) => {
     res.setHeader("Content-Type", "text/event-stream");
     res.setHeader("Cache-Control", "no-cache");
     res.setHeader("Connection", "keep-alive");
     res.flushHeaders();
-    // const interval = setInterval( async () => {
-    //    processMessage(req.session.user!.id, res);
-    // }, intervalTime.fast);
 
-    // setTimeout(() => {
-    //     processMessage(req.session.user!.id, res);
-    // }, 1000);
-    console.log("SSE Listen to event emitter \n\n");
-    eventEmitter.on(
-        EventTypes.WORKER,
-        (data: { type: string; media_id?: string }) => {
-            res.write(`data: media ${data.type} ${data.media_id || ""} \n\n`);
-            // sendWaitingFiles(req.session.user.id, res);
-        },
-    );
+    const workerListener = listener(res);
+
+    eventEmitter.on(EventTypes.WORKER, workerListener);
 
     req.on("resume", () => {
         console.info(`client ${req.session.user!.name} has opened connection`);
@@ -106,6 +100,7 @@ sseRoute.get("/", isAuthorized, async (req, res: Response) => {
     req.on("close", () => {
         console.info(`client ${req.session.user!.name} has closed connection`);
         res.end();
+        eventEmitter.removeListener(EventTypes.WORKER, workerListener);
         intervalTime.enabled = 0;
     });
 });

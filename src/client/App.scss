@@ -28,9 +28,13 @@
 }
 
 body.playing {
-    nav {
+    .head {
         @include mobile {
-            height: 155px;
+            height: 225px;
+            ul,
+            nav {
+                margin-top: auto;
+            }
         }
     }
 }
