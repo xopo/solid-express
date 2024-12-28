@@ -6,6 +6,7 @@
         "dev": "nodemon -w src/server -x tsx src/server/main.ts",
         "debug": "nodemon --inspect -w src/server -x tsx src/server/main.ts",
         "test": "vitest",
+        "worker": "tsx src/worker",
         "build": "tsc && vite build",
         "preview": "vite preview",
         "start": "NODE_ENV=production tsx src/server/main.ts",

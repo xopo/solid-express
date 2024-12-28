@@ -2,7 +2,7 @@ import path from "node:path";
 import os from "node:os";
 import { Worker } from "node:worker_threads";
 
-const workerPath = path.join(__dirname, "./download.js");
+const workerPath = path.join(__dirname, "../workers/download.js");
 const serverCpus = os.cpus().length;
 
 let workerPool: Record<string, Worker | undefined> = {};
@@ -30,13 +30,14 @@ function getWorker(id: string, data: unknown) {
 }
 
 function terminateWorker(id: string) {
-    if (workerPool[id]) {
+    if (workerPool[id] !== undefined) {
         workerPool[id]?.removeAllListeners();
         workerPool[id]?.terminate();
         workerPool[id] = undefined;
         delete workerPool[id];
     }
 }
+
 
 function terminateAllWorkers() {
     for (let entry of Object.entries(workerPool)) {

@@ -21,7 +21,7 @@ import validate from "./validate";
 import { uriSchema } from "../../common/validate/schema";
 import { extractMediaMetaFromUrl } from "./mediaHelper";
 import { removeFilesIfExists } from "../grabber/grab";
-import { getWorker, terminateWorker } from "../workers/workers";
+import { getWorker, terminateWorker } from "../workers";
 import eventEmitter, { EventTypes } from "../event";
 import lazyCatch from "../lib/lazyCatch";
 
@@ -35,9 +35,9 @@ contentRoute.get(
         const { page } = req.query;
         const content = id
             ? await dbGetUserContent(
-                  req.session.user.id,
-                  parseInt(page as `${number}`, 10),
-              )
+                req.session.user.id,
+                parseInt(page as `${number}`, 10),
+            )
             : [];
         res.json({ success: true, data: content });
     }),
@@ -55,10 +55,10 @@ contentRoute.post<any, any, any, { tags: string }>(
         const { id } = req.session.user;
         const content = id
             ? await dbGetUserContentByTags(
-                  req.session.user.id,
-                  cleanTags,
-                  parseInt((page as `${number}`) || "0"),
-              )
+                req.session.user.id,
+                cleanTags,
+                parseInt((page as `${number}`) || "0"),
+            )
             : [];
         res.json({ success: true, data: content });
     }),

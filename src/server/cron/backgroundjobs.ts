@@ -6,7 +6,7 @@ import {
     dbRemoveFileByMediaId,
     dbRemoveMediaFromUser,
 } from "../db/queries";
-import { getWorker, terminateWorker } from "../workers/workers";
+import { getWorker, terminateWorker } from "../workers";
 import eventEmitter, { EventTypes } from "../event";
 
 function moreThan5Minutes(date?: string): boolean {
@@ -44,10 +44,8 @@ async function downloadOrphanMedia() {
 
     // any worker should finish job on max 5 minutes
     const workerOut = setTimeout(() => {
-        worker?.terminate().then(() => {
-            throw (new Error('Worker timeout 5 minues has passed'));
-        })
-    })
+        terminateWorker(orphan.media_id)
+    }, 600 * 1000)
 
     if (!worker) return;
 

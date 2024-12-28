@@ -1,10 +1,10 @@
 import { parentPort, workerData } from "worker_threads";
-import { downloadMediaData, downloadFile } from "../routes/apihelper";
-import { grabImage, writeStream2File } from "../grabber/grab";
+
+import { downloadMediaData, downloadFile } from "../server/routes/apihelper";
+import { grabImage, writeStream2File } from "../server/grabber/grab";
 import {
     dbRemoveCompletedMedia,
     dbUpdateWaitingMediaId,
-    // dbGetWaitingByMediaId,
     dbUpdateWaitingMediaStatus,
     dbFileExists,
     dbAddNewFile,
@@ -12,8 +12,8 @@ import {
     dbAddNewDescription,
     descriptionInDb,
     dbSetMediaTags,
-} from "../db/queries";
-import { imageWithTitleExists } from "../grabber/grab";
+} from "../server/db/queries";
+import { imageWithTitleExists } from "../server/grabber/grab";
 
 const status = {
     GET_INFO: "get_info",
@@ -110,7 +110,7 @@ async function getMedia() {
         }
         console.log("-- at the end");
         setTimeout(() => {
-            dbRemoveCompletedMedia().then(() => {});
+            dbRemoveCompletedMedia().then(() => { });
         }, 500);
         setTimeout(() => setCompleted(), 1000);
     } catch (er) {
