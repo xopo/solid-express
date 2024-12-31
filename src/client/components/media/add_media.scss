@@ -1,4 +1,4 @@
-@import "../../utils.scss";
+@use "../../utils.scss" as *;
 
 .icon.add_media {
     width: 31px;
@@ -15,10 +15,12 @@
     left: 2em;
     bottom: 2em;
     background-color: white;
+
     &:hover,
     &:active {
         box-shadow: 0 0 6px lime;
     }
+
     @include mobile {
         left: 10px;
         bottom: 15px;
@@ -39,7 +41,8 @@
     z-index: 3;
     box-shadow: 1px 0px 31px #e9ff0087;
     overflow: hidden;
-    & + .backdrop {
+
+    &+.backdrop {
         position: fixed;
         top: 0;
         left: 0;
@@ -51,12 +54,14 @@
         z-index: 0;
         overflow: hidden;
     }
+
     button {
         display: flex;
         align-items: center;
         justify-content: center;
         gap: 1rem;
     }
+
     @include mobile {
         padding: 0.5em;
         margin: 0;

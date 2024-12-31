@@ -1,13 +1,15 @@
-@import "../../utils.scss";
+@use "../../utils.scss" as *;
 
 ul.download {
     padding: 0;
     list-style-type: none;
     overflow: scroll;
     max-height: 70%;
+
     .temp {
         justify-content: space-between;
         padding: 0.5rem 2px;
+
         .last {
             width: 100px;
             background: #eeeeee69;
@@ -17,19 +19,23 @@ ul.download {
             justify-content: center;
         }
     }
+
     .delete {
         display: flex;
         justify-content: space-between;
         margin-right: 15px;
     }
+
     .waiting {
         .content {
             position: relative;
         }
+
         .name {
             white-space: nowrap;
             overflow: hidden;
         }
+
         .content {
             display: flex;
             justify-content: space-between;
@@ -38,46 +44,56 @@ ul.download {
             // grid-template-columns: 100px 30px 1fr 20px 100px;
             // grid-auto-rows: 80px;
         }
+
         .image {
             background: #aaaaaa1f;
             border: 1px solid white;
             width: 100px;
             height: 50px;
             overflow: hidden;
+
             img {
                 width: 100px;
                 height: 50px;
                 object-fit: cover;
             }
         }
-        + .waiting {
+
+        +.waiting {
             border-top: 1px solid #aaaaaa1f;
             margin: 0.8em 0;
             padding-top: 0.5em;
         }
+
         .game {
             position: absolute;
             right: 50%;
             bottom: 5px;
         }
+
         .info {
             position: relative;
             flex-grow: 1;
+
             &.delete {
                 text-decoration: line-through;
                 color: pink;
                 cursor: pointer;
             }
         }
+
         .status {
             display: flex;
             justify-content: space-between;
+
             .delete {
                 cursor: pointer;
+
                 svg {
                     path {
                         fill: pink;
                     }
+
                     &:hover,
                     &.active {
                         path {
@@ -86,6 +102,7 @@ ul.download {
                     }
                 }
             }
+
             //     position: absolute;
             //     right: 10px;
             //     bottom: 0px;
@@ -96,6 +113,7 @@ ul.download {
             // }
         }
     }
+
     @include mobile {
         max-height: 60%;
     }
