@@ -39,27 +39,29 @@ async function downloadOrphanMedia() {
     }
     await dbUpdateRetryCount(orphan.media_id, orphan.retry);
 
-    // worker will be undefined if there are multiple workers already busy
-    const worker = getWorker(orphan.media_id, orphan);
+    try {
+        // worker will be undefined if there are multiple workers already busy
+        const worker = getWorker(orphan.media_id, orphan);
 
-    // any worker should finish job on max 5 minutes
-    const workerOut = setTimeout(() => {
-        terminateWorker(orphan.media_id)
-    }, 600 * 1000)
+        // any worker should finish job on max 5 minutes
+        const workerOut = setTimeout(() => {
+            terminateWorker(orphan.media_id)
+        }, 1200 * 1000)
 
-    if (!worker) return;
-
-    worker?.on("message", (data: { type: string }) => {
-        clearTimeout(workerOut)
-        console.log("router got data from worker", data);
-        eventEmitter?.emit(EventTypes.WORKER, data);
-    });
-    worker?.on("exit", () => {
-        clearTimeout(workerOut)
-        console.log("Worker exited, make cleanup");
-        worker.removeAllListeners();
-        terminateWorker(orphan.media_id);
-    });
+        worker?.on("message", (data: { type: string }) => {
+            clearTimeout(workerOut)
+            console.log("router got data from worker", data);
+            eventEmitter?.emit(EventTypes.WORKER, data);
+        });
+        worker?.on("exit", () => {
+            clearTimeout(workerOut)
+            console.log("Worker exited, make cleanup");
+            worker.removeAllListeners();
+            terminateWorker(orphan.media_id);
+        });
+    } catch (er) {
+        console.error(er)
+    }
 }
 // delete entries from waiting media table ('marked with delete')
 // cleanup - check for image/mp3 that should not exist ( nothing in db)

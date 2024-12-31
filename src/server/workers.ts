@@ -1,8 +1,11 @@
 import path from "node:path";
 import os from "node:os";
 import { Worker } from "node:worker_threads";
+import { fileURLToPath } from "node:url";
 
-const workerPath = path.join(__dirname, "../workers/download.js");
+const __dirname = fileURLToPath(import.meta.url)
+
+const workerPath = path.join(__dirname, "../../workers/download.js");
 const serverCpus = os.cpus().length;
 
 let workerPool: Record<string, Worker | undefined> = {};
@@ -14,12 +17,15 @@ function getWorker(id: string, data: unknown) {
     }
     if (!workerPool[id]) {
         try {
+            console.log('Create new worker with : ', workerPath)
             workerPool[id] = new Worker(workerPath, {
                 workerData: data,
             });
         } catch (er) {
             console.log("Failed to create download worker", er);
             throw er;
+        } finally {
+            console.log('after starting a new worker')
         }
     }
     console.log("\n\n\n[stats]", {

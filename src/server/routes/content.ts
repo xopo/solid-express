@@ -149,6 +149,7 @@ contentRoute.post<any, any, any, { url: string }>(
             }
             res.json({ success: true, data: fileInDb });
         } catch (e) {
+            console.error(e)
             res.status(400).json({
                 error:
                     e instanceof Error

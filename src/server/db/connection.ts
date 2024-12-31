@@ -3,11 +3,14 @@ import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 
 const getDirname = () => {
+
     try {
-        return __dirname as string;
-    } catch {
         const __filename = fileURLToPath(import.meta.url);
         return dirname(__filename) as string;
+
+    } catch (er) {
+
+        return __dirname as string;
     }
 };
 
@@ -24,7 +27,7 @@ export const connection = knex({
 });
 
 const cache = { last: "" };
-connection.on("start", function (builder) {
+connection.on("start", function(builder) {
     // only show new queries
     const { sql, bindings } = builder.toSQL();
     const query = `${sql}  ${JSON.stringify(bindings)}`;
