@@ -1,7 +1,6 @@
 import { parentPort, workerData } from "worker_threads";
-
 import { downloadMediaData, downloadFile } from "../server/routes/apihelper";
-import { grabImage, writeStream2File } from "../server/grabber/grab";
+import { imageWithTitleExists, grabImage, writeStream2File } from "../server/grabber/grab";
 import {
     dbRemoveCompletedMedia,
     dbUpdateWaitingMediaId,
@@ -13,7 +12,6 @@ import {
     descriptionInDb,
     dbSetMediaTags,
 } from "../server/db/queries";
-import { imageWithTitleExists } from "../server/grabber/grab";
 
 const status = {
     GET_INFO: "get_info",
@@ -89,29 +87,28 @@ async function getMedia() {
         } else {
             console.log("-- dbFileExists");
         }
+
         if (!(await descriptionInDb(details.id))) {
+            // set status to be displayed on customer side
+            parentPort?.postMessage({ type: status.GET_INFO, media_id });
             await dbAddNewDescription(details);
             await dbUpdateWaitingMediaStatus(id, "waiting");
         } else {
             console.error("-- details description already in db");
         }
-        console.log("-- before image");
+
         await getImage(title, details, { ...workerData, media_id: details.id }); // media_id could be different from details.id, details.id has wright
 
-        // inform SSE chante done
-        parentPort?.postMessage({ type: status.GET_INFO, media_id });
 
+        parentPort?.postMessage({ type: status.GET_MP3, media_id });
         console.log(`\n\nDownload file ${url} here\n\n`);
-        const result = await downloadFile(url, details.id);
-        if (result) {
-            parentPort?.postMessage({ type: status.GET_MP3, media_id });
-        } else {
-            console.log("-- problem download file");
-        }
-        console.log("-- at the end");
-        setTimeout(() => {
-            dbRemoveCompletedMedia().then(() => { });
+
+        await downloadFile(url, details.id);
+
+        setTimeout(async () => {
+            await dbRemoveCompletedMedia();
         }, 500);
+
         setTimeout(() => setCompleted(), 1000);
     } catch (er) {
         console.error(er);

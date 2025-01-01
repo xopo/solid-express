@@ -23,6 +23,7 @@ export default function ActionMenu({ entry, disable }: ActionMenuProps) {
         ev.stopPropagation();
         await apiRestartDownload(entry, true);
         refetchContent();
+        disable();
     }
 
     async function onDelete(ev: MouseEvent) {
@@ -48,6 +49,7 @@ export default function ActionMenu({ entry, disable }: ActionMenuProps) {
                 <a
                     href={getMp3Link(entry.name)}
                     download={`${entry.title}.mp3`}
+                    onClick={() => disable()}
                 >
                     <SvgIcon name="download" size={28} />
                 </a>
@@ -60,7 +62,10 @@ export default function ActionMenu({ entry, disable }: ActionMenuProps) {
             </button>
             <Show when={showTagsModal()}>
                 <TagsModal
-                    hide={() => setShowTagsModal(false)}
+                    hide={() => {
+                        setShowTagsModal(false)
+                        disable()
+                    }}
                     media_id={entry.media_id}
                 />
             </Show>
