@@ -43,7 +43,7 @@ async function downloadOrphanMedia() {
         // worker will be undefined if there are multiple workers already busy
         const worker = getWorker(orphan.media_id, orphan);
 
-        // any worker should finish job on max 5 minutes
+        // any worker should finish job on max 15 minutes
         const workerOut = setTimeout(() => {
             terminateWorker(orphan.media_id)
         }, 1200 * 1000)

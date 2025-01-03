@@ -29,7 +29,8 @@ export default function WaitingFiles({ hide, newFiles, resetNewFiles }: Props) {
             setLastMessage(serverMessage() || "");
             if (
                 serverMessage()?.includes("media") ||
-                serverMessage()?.includes("content")
+                serverMessage()?.includes("content") ||
+                serverMessage()?.includes("completed")
             ) {
                 console.log("server message:", serverMessage());
                 refetchWaiting();
@@ -40,7 +41,8 @@ export default function WaitingFiles({ hide, newFiles, resetNewFiles }: Props) {
                     hide();
                 }
             }
-        } else {
+        } else if (serverMessage()?.includes("completed")) {
+            refetchWaiting();
             console.log("server message", serverMessage());
         }
     });

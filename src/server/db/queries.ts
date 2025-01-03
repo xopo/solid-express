@@ -328,68 +328,13 @@ export async function dbGetUserContentByTags(
                         "tm.tag_id",
                         tagIds.map((t) => t.id),
                     )
-                    // .leftJoin("tags as t", function () {
-                    //     this.on("t.id", "=", "tm.tag_id").andOn(
-                    //
-                    //         connection.raw("t.name in (?)",tagIds
-                    //         // connection.raw("t.name in (?)", [
-                    //         //     ...(tags as string[]),
-                    //         // ]),
-                    //     );
-                    // })
                     .where({ enabled: 1, user_id })
                     .limit(limit)
                     .offset(offset)
                     .groupBy("tm.media_id");
             })
-            // .modify(function (QueryBuilder) {
-            //     if (tags?.length) {
-            //         // const listOfTags = tags.split(" ");
-            //         for (let tag of tags) {
-            //             //listOfTags) {
-            //             QueryBuilder.where("f.name", "like", `%${tag}%`)
-            //                 .orWhere("d.title", "like", `%${tag}%`)
-            //                 .orWhere("d.description", "like", `%${tag}%`)
-            //                 .orWhere("d.categories", "like", `%${tag}%`)
-            //                 .orWhere("d.uploader", "like", `%${tag}%`);
-            //         }
-            //     }
-            // })
-
             .orderBy("f.add_time", "desc")
     );
-    // return await getFilesTable()
-    //     .select(
-    //         "f.name",
-    //         "f.add_time",
-    //         "d.*",
-    //         connection.raw(
-    //             "group_concat(case when tm.enabled = 1 then t.name else '' end) as tags",
-    //         ),
-    //     )
-    //     .leftJoin("user_media as um", "um.file_id", "f.id")
-    //     .leftJoin("description as d", "d.media_id", "f.media_id")
-    //     .leftJoin("tags_media as tm", "tm.media_id", "f.media_id")
-    //     .leftJoin("tags as t", "t.id", "tm.tag_id")
-    //     .where("um.user_id", user_id)
-    //     .andWhere("f.completed", "1")
-    //     .modify(function (QueryBuilder) {
-    //         if (tags?.length) {
-    //             // const listOfTags = tags.split(" ");
-    //             for (let tag of tags) {
-    //                 //listOfTags) {
-    //                 QueryBuilder.where("f.name", "like", `%${tag}%`)
-    //                     .orWhere("d.title", "like", `%${tag}%`)
-    //                     .orWhere("d.description", "like", `%${tag}%`)
-    //                     .orWhere("t.name", "like", "%keto%")
-    //                     .orWhere("d.categories", "like", `%${tag}%`);
-    //                 // .orWhere("d.uploader", "like", `%${tag}%`);
-    //             }
-    //         }
-    //     })
-    //     .orderBy("f.add_time", "desc")
-    //     .orderByRaw("count(case when tm.enabled = 1 then 1 else 0 end) desc")
-    //     .groupBy("f.id");
 }
 
 export async function dbUpdateFileStatus(media_id: string, completed: boolean) {

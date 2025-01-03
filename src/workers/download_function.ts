@@ -68,9 +68,10 @@ async function getImage(title: string, details, media) {
 }
 
 async function getMedia() {
-    console.log("\n\n Worder get media\n\n");
+    console.log("\n\n Worker get media\n\n");
     const { id, media_id, url, user_id, tags } = workerData as WorkerData;
     try {
+        await dbUpdateWaitingMediaStatus(id, "details");
         const details = await getDetails(id, media_id);
         console.log("-- details", { id, url, user_id });
 
@@ -83,16 +84,15 @@ async function getMedia() {
             if (tags?.length > 0) {
                 await dbSetMediaTags(media_id, user_id, tags);
             }
-            await dbUpdateWaitingMediaStatus(id, "details");
         } else {
             console.log("-- dbFileExists");
         }
 
         if (!(await descriptionInDb(details.id))) {
             // set status to be displayed on customer side
-            parentPort?.postMessage({ type: status.GET_INFO, media_id });
-            await dbAddNewDescription(details);
             await dbUpdateWaitingMediaStatus(id, "waiting");
+            await dbAddNewDescription(details);
+            parentPort?.postMessage({ type: status.GET_INFO, media_id });
         } else {
             console.error("-- details description already in db");
         }
@@ -100,12 +100,14 @@ async function getMedia() {
         await getImage(title, details, { ...workerData, media_id: details.id }); // media_id could be different from details.id, details.id has wright
 
 
+        await dbUpdateWaitingMediaStatus(id, "download");
         parentPort?.postMessage({ type: status.GET_MP3, media_id });
         console.log(`\n\nDownload file ${url} here\n\n`);
 
         await downloadFile(url, details.id);
 
         setTimeout(async () => {
+            await dbUpdateWaitingMediaStatus(id, "done");
             await dbRemoveCompletedMedia();
         }, 500);
 
