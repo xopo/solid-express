@@ -22,6 +22,7 @@ type Mp3ContextType = {
     cleanup: () => void;
     content: Accessor<EntryData[] | undefined>;
     dbTags: Resource<never[] | Tag[]>;
+    deleted: Accessor<string[]>;
     downloadTags: Accessor<string[]>;
     goNextPage: () => void;
     onSearch: (s: string, k: string) => void;
@@ -29,6 +30,7 @@ type Mp3ContextType = {
     resetDownloadTags: () => void;
     search: Accessor<string>;
     serverMessage: Accessor<string | undefined>;
+    setDeleted: Setter<string[]>;
     setDownloadTags: (s: string) => void;
     setShowModal: Setter<boolean>;
     setTags: (s: string) => void;
@@ -58,6 +60,7 @@ const nowSeconds = () => new Date().getTime() / 100;
 let mediaHolder: EntryData[] = [];
 
 export const Mp3Provider = (props: WithChildren) => {
+    const [deleted, setDeleted] = createSignal<string[]>([]);
     const [serverMessage, setServerMessage] = createSignal<string>();
     const [page, setPage] = createSignal(0);
     const [showModal, setShowModal] = createSignal(false);
@@ -174,6 +177,8 @@ export const Mp3Provider = (props: WithChildren) => {
         cleanup: () => serverEvent.close(),
         content: media,
         dbTags,
+        deleted,
+        setDeleted,
         downloadTags,
         goNextPage,
         onSearch,

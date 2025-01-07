@@ -1,4 +1,11 @@
-import { For, createEffect, createSignal, onCleanup, onMount } from "solid-js";
+import {
+    For,
+    Show,
+    createEffect,
+    createSignal,
+    onCleanup,
+    onMount,
+} from "solid-js";
 import MediaEntry from "./Entry";
 import MediaPlayer, { Direction } from "./player/Player";
 import { EntryData, useMp3Context } from "../../context/appContext";
@@ -14,8 +21,14 @@ export default function MediaList() {
     const [activeDetail, setActiveDetail] = createSignal<
         EntryData | undefined
     >();
-    const { content, serverMessage, refetchContent, cleanup, goNextPage } =
-        useMp3Context();
+    const {
+        content,
+        deleted,
+        serverMessage,
+        refetchContent,
+        cleanup,
+        goNextPage,
+    } = useMp3Context();
 
     const [targets, setTargets] = createSignal<Element[]>([]);
 
@@ -114,15 +127,17 @@ export default function MediaList() {
             <ul class="media-list" classList={{ small: fewMedia() }}>
                 <For each={content()}>
                     {(entry, idx) => (
-                        <MediaEntry
-                            changeMedia={setNewEntry}
-                            entry={entry}
-                            active={activeDetail}
-                            setActive={toggleActive}
-                            addElement={setTargets}
-                            visible={visible}
-                            isLast={content()?.length === idx() + 1}
-                        />
+                        <Show when={!deleted().includes(entry.media_id)}>
+                            <MediaEntry
+                                changeMedia={setNewEntry}
+                                entry={entry}
+                                active={activeDetail}
+                                setActive={toggleActive}
+                                addElement={setTargets}
+                                visible={visible}
+                                isLast={content()?.length === idx() + 1}
+                            />
+                        </Show>
                     )}
                 </For>
             </ul>

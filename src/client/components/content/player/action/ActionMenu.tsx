@@ -12,7 +12,7 @@ export type ActionMenuProps = {
 };
 
 export default function ActionMenu({ entry, disable }: ActionMenuProps) {
-    const { refetchContent } = useMp3Context();
+    const { refetchContent, setDeleted } = useMp3Context();
     const [showTagsModal, setShowTagsModal] = createSignal(false);
     // function onSave(ev: MouseEvent) {
     //     ev.stopPropagation();
@@ -29,7 +29,8 @@ export default function ActionMenu({ entry, disable }: ActionMenuProps) {
     async function onDelete(ev: MouseEvent) {
         ev.stopPropagation();
         await apiDeleteMedia(entry.media_id);
-        refetchContent();
+        // refetchContent();
+        setDeleted((prev) => [...prev, entry.media_id]);
         disable();
     }
     return (
@@ -63,8 +64,8 @@ export default function ActionMenu({ entry, disable }: ActionMenuProps) {
             <Show when={showTagsModal()}>
                 <TagsModal
                     hide={() => {
-                        setShowTagsModal(false)
-                        disable()
+                        setShowTagsModal(false);
+                        disable();
                     }}
                     media_id={entry.media_id}
                 />
