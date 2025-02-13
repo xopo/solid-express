@@ -43,13 +43,15 @@ export function selectThumbnail(thumbs: ThumbType[], defaultThumbnail: string) {
 export type DownloadMedia = {};
 
 export const downloadMediaData = async (url: string) => {
-    return (await youtubeDl(url, {
+    const result = (await youtubeDl(url, {
         dumpSingleJson: true,
         noCheckCertificates: true,
         noWarnings: true,
         preferFreeFormats: true,
         addHeader: ["referer:youtube.com", "user-agent:googlebot"],
     })) as MediaDataType;
+    console.log("-- ond download media data", { url, result });
+    return result;
 };
 
 export async function downloadFile(url: string, media_id: string) {
