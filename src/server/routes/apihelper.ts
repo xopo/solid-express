@@ -8,13 +8,37 @@ import {
 } from "../db/queries";
 import { fsGetContent, renameOld } from "../grabber/grab";
 import { unlink } from "node:fs";
-
 import YTDlpWrap from "yt-dlp-wrap";
-const ytDLP = new YTDlpWrap("/opt/homebrew/bin/yt-dlp");
+import { access } from "node:fs/promises";
+import { constants } from "node:fs";
+
+let ytdlp: YTDlpWrap | null = null;
 
 export const {
-    parsed: { STATIC_FILES, ENABLE_DOWNLOAD },
-} = config() as { parsed: { STATIC_FILES: string; ENABLE_DOWNLOAD: string } };
+    parsed: { STATIC_FILES, ENABLE_DOWNLOAD, YT_PATH },
+} = config() as {
+    parsed: { STATIC_FILES: string; ENABLE_DOWNLOAD: string; YT_PATH: string };
+};
+try {
+    if (!YT_PATH) {
+        throw new Error(YT_PATH);
+    }
+    access(YT_PATH, constants.F_OK).catch((er) => {
+        throw new Error(er);
+    });
+} catch (er) {
+    console.log("Problem accessing yt-dlp binary!!", er);
+    process.exit(0);
+}
+
+function getYtdlp() {
+    if (ytdlp === null) {
+        ytdlp = new YTDlpWrap(YT_PATH);
+    }
+    return ytdlp;
+}
+const ytDLP = getYtdlp();
+
 export const mediaLocation = STATIC_FILES;
 // console.log({ STATIC_FILES, ENABLE_DOWNLOAD });
 

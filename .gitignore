@@ -28,3 +28,4 @@ dist-ssr
 *.timestamp-*.mjs
 sessions.db
 public/assets/images
+.env
