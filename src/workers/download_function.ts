@@ -1,6 +1,10 @@
 import { parentPort, workerData } from "worker_threads";
 import { downloadMediaData, downloadFile } from "../server/routes/apihelper";
-import { imageWithTitleExists, grabImage, writeStream2File } from "../server/grabber/grab";
+import {
+    imageWithTitleExists,
+    grabImage,
+    writeStream2File,
+} from "../server/grabber/grab";
 import {
     dbRemoveCompletedMedia,
     dbUpdateWaitingMediaId,
@@ -20,8 +24,8 @@ const status = {
     COMPLETED: "completed",
 };
 
-const setCompleted = () => {
-    parentPort?.postMessage({ type: status.COMPLETED });
+const setCompleted = (id: string) => {
+    parentPort?.postMessage({ type: `${status.COMPLETED} for id ${id}` });
     process.exit();
 };
 
@@ -38,7 +42,7 @@ async function getDetails(id: number, media_id: string) {
     }
     if (details.is_live) {
         await dbUpdateWaitingMediaStatus(id, "live");
-        setCompleted();
+        setCompleted(media_id);
     }
 
     // write details to file for debug in dev
@@ -99,19 +103,17 @@ async function getMedia() {
 
         await getImage(title, details, { ...workerData, media_id: details.id }); // media_id could be different from details.id, details.id has wright
 
-
         await dbUpdateWaitingMediaStatus(id, "download");
         parentPort?.postMessage({ type: status.GET_MP3, media_id });
-        console.log(`\n\nDownload file ${url} here\n\n`);
 
-        await downloadFile(url, details.id);
+        await downloadFile(url, details.id, title);
 
         setTimeout(async () => {
             await dbUpdateWaitingMediaStatus(id, "done");
             await dbRemoveCompletedMedia();
         }, 500);
 
-        setTimeout(() => setCompleted(), 1000);
+        setTimeout(() => setCompleted(details.id), 1000);
     } catch (er) {
         console.error(er);
     }

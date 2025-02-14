@@ -1,4 +1,3 @@
-import youtubeDl from "youtube-dl-exec";
 import { MediaDataType } from "../types";
 import { join } from "node:path";
 import { config } from "dotenv";
@@ -10,10 +9,14 @@ import {
 import { fsGetContent, renameOld } from "../grabber/grab";
 import { unlink } from "node:fs";
 
+import YTDlpWrap from "yt-dlp-wrap";
+const ytDLP = new YTDlpWrap("/opt/homebrew/bin/yt-dlp");
+
 export const {
-    parsed: { STATIC_FILES },
-} = config() as { parsed: { STATIC_FILES: string } };
+    parsed: { STATIC_FILES, ENABLE_DOWNLOAD },
+} = config() as { parsed: { STATIC_FILES: string; ENABLE_DOWNLOAD: string } };
 export const mediaLocation = STATIC_FILES;
+// console.log({ STATIC_FILES, ENABLE_DOWNLOAD });
 
 export const titleSafe = (title: string, id: string) =>
     `${title.replace(/[^0-9a-z.\[\]]/gi, "")}[${id}]`;
@@ -43,34 +46,37 @@ export function selectThumbnail(thumbs: ThumbType[], defaultThumbnail: string) {
 export type DownloadMedia = {};
 
 export const downloadMediaData = async (url: string) => {
-    const result = (await youtubeDl(url, {
-        dumpSingleJson: true,
-        noCheckCertificates: true,
-        noWarnings: true,
-        preferFreeFormats: true,
-        addHeader: ["referer:youtube.com", "user-agent:googlebot"],
-    })) as MediaDataType;
-    console.log("-- ond download media data", { url, result });
-    return result;
+    const metadata = (await ytDLP.getVideoInfo(url)) as MediaDataType;
+    return metadata;
 };
 
-export async function downloadFile(url: string, media_id: string) {
+// download and create a readable stream
+// or download and emit progress for event emitter
+// https://github.com/foxesdocode/yt-dlp-wrap
+export async function downloadFile(
+    url: string,
+    media_id: string,
+    title: string,
+) {
     try {
-        const mp3File = await youtubeDl(url, {
-            extractAudio: true,
-            audioFormat: "mp3",
-            noCheckCertificates: true,
-            embedThumbnail: true,
-            addMetadata: true,
-            noWarnings: true,
-            preferFreeFormats: true,
-            addHeader: ["referer:youtube.com", "user-agent:googlebot"],
-            //@ts-ignore
-            paths: mediaLocation,
-        });
-        await renameFile(media_id);
-        await dbUpdateFileStatus(media_id, true);
-        return !!mp3File;
+        const mp3File = `${mediaLocation}/${title}.mp3`;
+        console.log(
+            url,
+            "** before yt-dlp download file, check where it is saved and stuff",
+            mp3File,
+        );
+
+        const readableStream = await ytDLP.execPromise([
+            url,
+            "-x",
+            "--audio-format",
+            "mp3",
+            "-o",
+            mp3File,
+        ]);
+        console.log("----- done", readableStream);
+        void dbUpdateFileStatus(media_id, true);
+        return { completed: true };
     } catch (er) {
         console.error(er);
         return { completed: false };

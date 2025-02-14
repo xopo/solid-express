@@ -24,6 +24,7 @@ import { removeFilesIfExists } from "../grabber/grab";
 import { getWorker, terminateWorker } from "../workers";
 import eventEmitter, { EventTypes } from "../event";
 import lazyCatch from "../lib/lazyCatch";
+import { ENABLE_DOWNLOAD } from "./apihelper";
 
 const contentRoute = Router();
 
@@ -35,9 +36,9 @@ contentRoute.get(
         const { page } = req.query;
         const content = id
             ? await dbGetUserContent(
-                req.session.user.id,
-                parseInt(page as `${number}`, 10),
-            )
+                  req.session.user.id,
+                  parseInt(page as `${number}`, 10),
+              )
             : [];
         res.json({ success: true, data: content });
     }),
@@ -49,16 +50,16 @@ contentRoute.post<any, any, any, { tags: string }>(
     lazyCatch(async (req, res) => {
         const { tags } = req.body;
         const { page } = req.query;
-        const cleanTags = tags.map((t: string) =>
+        const cleanTags = tags?.map((t: string) =>
             t.trim().replace(/[^a-zA-Z\s0-9_-]/gi, ""),
         );
         const { id } = req.session.user;
         const content = id
             ? await dbGetUserContentByTags(
-                req.session.user.id,
-                cleanTags,
-                parseInt((page as `${number}`) || "0"),
-            )
+                  req.session.user.id,
+                  cleanTags,
+                  parseInt((page as `${number}`) || "0"),
+              )
             : [];
         res.json({ success: true, data: content });
     }),
@@ -149,7 +150,7 @@ contentRoute.post<any, any, any, { url: string }>(
             }
             res.json({ success: true, data: fileInDb });
         } catch (e) {
-            console.error(e)
+            console.error(e);
             res.status(400).json({
                 error:
                     e instanceof Error
@@ -164,7 +165,12 @@ contentRoute.post(
     "/getWaiting",
     isAuthorized,
     lazyCatch(async (req, res) => {
-        const data = await dbGetWaitingMedia(req.session.user.id);
+        console.log("get waiting content", ENABLE_DOWNLOAD);
+        const data = await dbGetWaitingMedia(
+            req.session.user.id,
+            ENABLE_DOWNLOAD,
+            100,
+        );
         res.json({ success: true, data });
     }),
 );

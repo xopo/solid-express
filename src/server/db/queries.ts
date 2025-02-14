@@ -1,5 +1,5 @@
-import { Payload } from "youtube-dl-exec";
 import { now } from "../helper";
+import { MediaDataType } from "../types";
 import { connection } from "./connection";
 import { Knex } from "knex";
 
@@ -106,8 +106,13 @@ export const dbInsertNewMedia = async (
     tags: string,
 ) => getWaitingTable().insert({ media_id, url, user_id, tags });
 
-export const dbGetWaitingMedia = async (user_id: number, limit = 100) =>
-    getWaitingTable()
+export const dbGetWaitingMedia = async (
+    user_id: number,
+    downloadEnabled = "true",
+    limit = 100,
+) => {
+    console.log("db get media ", downloadEnabled);
+    return getWaitingTable()
         .select(
             "wm.media_id",
             "wm.url as waiting_url",
@@ -128,7 +133,14 @@ export const dbGetWaitingMedia = async (user_id: number, limit = 100) =>
         .leftJoin("files as f", "f.media_id", "wm.media_id")
         .leftJoin("description as d", "d.media_id", "wm.media_id")
         .where("wm.user_id", user_id)
+        .modify(function (QueryBuilder) {
+            if (downloadEnabled === "false") {
+                console.log("** add query builder where not download");
+                QueryBuilder.where("wm.status", "!=", "download");
+            }
+        })
         .limit(limit);
+};
 
 export const dbRemoveWaitingMedia = async (media_id: string) => {
     return getWaitingTable().where("media_id", media_id).delete();
@@ -143,7 +155,7 @@ export const dbGetFirstWaitingMedia = async () =>
     getWaitingTable()
         .select<
             WaitingMedia & { name: string; add_time: string; retry: number }
-        >("wm.id", "wm.url", "wm.media_id", "f.name", "f.add_time", "wm.retry", "um.user_id", connection.raw("JSON_EXTRACT(wm.tags, '$') AS tags"))
+        >("wm.id", "wm.url", "wm.media_id", "f.name", "f.add_time", "wm.retry", "wm.user_id", connection.raw("JSON_EXTRACT(wm.tags, '$') AS tags"))
         .leftJoin("files as f", "f.media_id", "wm.media_id")
         .leftJoin("user_media as um", "f.id", "um.file_id")
         .orderBy("wm.id", "asc")
@@ -255,7 +267,7 @@ export const descriptionInDb = (media_id: string) => {
     return getDescriptionTable().where({ media_id }).first();
 };
 
-export const dbAddNewDescription = (description: Payload) => {
+export const dbAddNewDescription = (description: MediaDataType) => {
     return getDescriptionTable().insert({
         media_id: description.id,
         title: description.title,
@@ -316,25 +328,23 @@ export async function dbGetUserContentByTags(
     const offset = page * limit;
     const tagIds = await getTagsTable().select("id").whereIn("name", tags);
     console.log("__** get user content by tags", { user_id, tags, tagIds });
-    return (
-        getFilesTable()
-            .select("f.name", "f.add_time", "d.*")
-            .join("description as d", "d.media_id", "f.media_id")
-            .where("completed", 1)
-            .whereIn("f.media_id", function () {
-                this.select("tm.media_id")
-                    .from("tags_media as tm")
-                    .whereIn(
-                        "tm.tag_id",
-                        tagIds.map((t) => t.id),
-                    )
-                    .where({ enabled: 1, user_id })
-                    .limit(limit)
-                    .offset(offset)
-                    .groupBy("tm.media_id");
-            })
-            .orderBy("f.add_time", "desc")
-    );
+    return getFilesTable()
+        .select("f.name", "f.add_time", "d.*")
+        .join("description as d", "d.media_id", "f.media_id")
+        .where("completed", 1)
+        .whereIn("f.media_id", function () {
+            this.select("tm.media_id")
+                .from("tags_media as tm")
+                .whereIn(
+                    "tm.tag_id",
+                    tagIds.map((t) => t.id),
+                )
+                .where({ enabled: 1, user_id })
+                .limit(limit)
+                .offset(offset)
+                .groupBy("tm.media_id");
+        })
+        .orderBy("f.add_time", "desc");
 }
 
 export async function dbUpdateFileStatus(media_id: string, completed: boolean) {
