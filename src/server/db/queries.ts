@@ -267,20 +267,20 @@ export const descriptionInDb = (media_id: string) => {
     return getDescriptionTable().where({ media_id }).first();
 };
 
-export const dbAddNewDescription = (description: MediaDataType) => {
+export const dbAddNewDescription = (description: Partial<MediaDataType>) => {
     return getDescriptionTable().insert({
-        media_id: description.id,
-        title: description.title,
         categories: JSON.stringify(description.categories),
-        description: description.description,
-        epoch: description.epoch,
-        thumbnail: description.thumbnail,
-        duration_string: description.duration_string,
         channel_url: description.channel_url,
-        url: description.original_url,
-        uploader: description.uploader,
+        description: description.description,
+        duration_string: description.duration_string,
+        epoch: description.epoch,
+        media_id: description.id,
+        thumbnail: description.thumbnail,
+        title: description.title,
         upload_date: description.upload_date,
         upload_url: description.uploader_url,
+        uploader: description.uploader,
+        url: description.original_url,
     });
 };
 

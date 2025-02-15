@@ -16,6 +16,7 @@ import {
     descriptionInDb,
     dbSetMediaTags,
 } from "../server/db/queries";
+import { sanitizeDetails } from "./sanitizer";
 
 const status = {
     GET_INFO: "get_info",
@@ -53,7 +54,8 @@ async function getDetails(id: number, media_id: string) {
         await dbUpdateWaitingMediaId(id, details.id);
     }
     await dbUpdateWaitingMediaStatus(id, "details");
-    return details;
+
+    return sanitizeDetails(details);
 }
 
 type WorkerData = {

@@ -20,6 +20,7 @@ export const {
     parsed: { STATIC_FILES: string; ENABLE_DOWNLOAD: string; YT_PATH: string };
 };
 try {
+    console.info("yt-dlp path: ", YT_PATH);
     if (!YT_PATH) {
         throw new Error(YT_PATH);
     }
