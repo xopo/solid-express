@@ -8,6 +8,7 @@ import { Readable } from "stream";
 import { join } from "path";
 import { cutAndSave, toLargeThumbnail } from "../routes/imageHelper";
 import { MediaDataType, Thumbnail } from "../types";
+import { mkdirSync } from "node:fs";
 
 export function writeStream2File(name: string, data: any, env = "all") {
     console.log("*** writeStream2files", {
@@ -35,8 +36,9 @@ export function writeStream2File(name: string, data: any, env = "all") {
     }
 }
 
-export const newPathFileName = (title: string) =>
-    join(STATIC_FILES, `${title}`) + ".webp";
+// location is '' for mp3 and 'thumb' for thumbnails
+export const newImagePath = (title: string) =>
+    join(STATIC_FILES, "thumb", title) + ".webp";
 
 const youtubeQualityOrder = ["mqdefault", "mp3", "mp2", "mq1"];
 
@@ -66,14 +68,14 @@ export async function grabImage(
             }
         }
         if (smallThumbNail) {
-            const newPath = newPathFileName(title);
+            const newPath = newImagePath(title);
             url2file(smallThumbNail.url, newPath);
         } else {
             // no preference, hence use default thumbnail and transform size
-            toLargeThumbnail(alternativeImgUrl, newPathFileName(title));
+            toLargeThumbnail(alternativeImgUrl, newImagePath(title));
         }
     } else {
-        const newPathLarge = newPathFileName(title);
+        const newPathLarge = newImagePath(title);
         toLargeThumbnail(details.thumbnail, newPathLarge);
     }
     await dbUpdateWaitingMediaStatus(media.id, "details");
@@ -97,19 +99,26 @@ const url2file = async (url: string, thumbPath: string) => {
     }
 };
 //getAllImages
-export async function fsGetContent(): Promise<Dirent[]> {
-    if (!existsSync(STATIC_FILES)) {
-        throw new Error(`folder /${STATIC_FILES} does not exist`);
-    }
+export async function fsGetContent(partialPath = ""): Promise<Dirent[]> {
+    const location = join(STATIC_FILES, partialPath);
+    try {
+        if (!existsSync(location)) {
+            mkdirSync(location, { recursive: true });
+        }
 
-    return await readdir(STATIC_FILES, { withFileTypes: true });
+        return await readdir(STATIC_FILES, { withFileTypes: true });
+    } catch (er) {
+        console.log(er);
+        process.exit(0);
+    }
 }
 
 export async function imageWithTitleExists(title: string) {
-    const images = await fsGetContent();
+    const images = await fsGetContent("thumb");
     const found = images
         .filter((ent) => ent.isFile())
         .find((entry) => entry.name.includes(title));
+    console.log({ found });
     return !!found;
 }
 

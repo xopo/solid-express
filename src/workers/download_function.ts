@@ -69,8 +69,9 @@ type WorkerData = {
 // get image for the file
 //@ts-ignore
 async function getImage(title: string, details, media) {
-    await imageWithTitleExists(title);
-    await grabImage(media, details, title);
+    if (!(await imageWithTitleExists(title))) {
+        await grabImage(media, details, title);
+    }
 }
 
 async function getMedia() {

@@ -98,6 +98,8 @@ export async function downloadFile(
             "mp3",
             "-o",
             mp3File,
+            "--add-metadata",
+            "--embed-thumbnail",
         ]);
         console.log("----- done", readableStream);
         void dbUpdateFileStatus(media_id, true);
