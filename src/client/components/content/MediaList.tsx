@@ -13,6 +13,9 @@ import { createIntersectionObserver } from "@solid-primitives/intersection-obser
 
 import "./media_list.scss";
 
+const isMobile = () =>
+    window.innerWidth < 1200 && window.innerHeight > window.innerWidth;
+
 export default function MediaList() {
     let observer: IntersectionObserver;
     const [pick, setNewEntry] = createSignal<EntryData | undefined>();
@@ -56,12 +59,13 @@ export default function MediaList() {
     }
 
     onMount(() => {
-        // const root = document.querySelector("#root");
-        observer = new IntersectionObserver(bottomScrooll, {
-            // root,
-            // rootMargin: "0px",
-            // threshold: 1.0,
-        });
+        const options = {
+            root: document.querySelector("#root"),
+            rootMargin: isMobile() ? `${window.innerHeight}px` : "100px",
+            threshold: 1.0,
+        };
+        console.log("on mount  observe options");
+        observer = new IntersectionObserver(bottomScrooll, options);
     });
 
     createIntersectionObserver(targets, (entries, observer) => {
