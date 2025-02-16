@@ -13,8 +13,8 @@ import { createIntersectionObserver } from "@solid-primitives/intersection-obser
 
 import "./media_list.scss";
 
-const isMobile = () =>
-    window.innerWidth < 1200 && window.innerHeight > window.innerWidth;
+// const isMobile = () =>
+//     window.innerWidth < 1200 && window.innerHeight > window.innerWidth;
 
 export default function MediaList() {
     let observer: IntersectionObserver;
@@ -59,13 +59,13 @@ export default function MediaList() {
     }
 
     onMount(() => {
-        const options = {
-            root: document.querySelector("#root"),
-            rootMargin: isMobile() ? `-${window.innerHeight}px` : "100px",
-            threshold: 0.1,
-        };
+        // const options = {
+        //     root: document.querySelector("#root"),
+        //     rootMargin: isMobile() ? `-${window.innerHeight}px` : "100px",
+        //     threshold: 0.1,
+        // };
         console.log("on mount  observe options");
-        observer = new IntersectionObserver(bottomScrooll, options);
+        observer = new IntersectionObserver(bottomScrooll, { threshold: 0.1 });
     });
 
     createIntersectionObserver(targets, (entries, observer) => {
@@ -76,11 +76,15 @@ export default function MediaList() {
                     if (!entry) {
                         break;
                     }
-                    let pic = entry.getElementsByTagName("picture")[0];
-                    pic.getElementsByTagName("source")[0].srcset =
-                        pic.dataset.url!;
-                    pic.getElementsByTagName("img")[0].src = pic.dataset.url!;
-                    observer.unobserve(entry);
+                    const pic = entry.getElementsByTagName("picture")[0];
+                    const img = pic.dataset.url;
+                    if (img) {
+                        pic.getElementsByTagName("source")[0].srcset = img;
+                        pic.getElementsByTagName("img")[0].src = img;
+                    }
+                    if (i !== 4) {
+                        observer.unobserve(entry);
+                    }
                     entry = entry.nextElementSibling;
                 }
             }

@@ -14,7 +14,6 @@ function App() {
         <Mp3Provider>
             <Head />
             <MediaList />
-
             <Show when={isUser()}>
                 <AddMedia />
             </Show>
