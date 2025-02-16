@@ -61,8 +61,8 @@ export default function MediaList() {
     onMount(() => {
         const options = {
             root: document.querySelector("#root"),
-            rootMargin: isMobile() ? `${window.innerHeight}px` : "100px",
-            threshold: 1.0,
+            rootMargin: isMobile() ? `-${window.innerHeight}px` : "100px",
+            threshold: 0.1,
         };
         console.log("on mount  observe options");
         observer = new IntersectionObserver(bottomScrooll, options);
@@ -71,10 +71,18 @@ export default function MediaList() {
     createIntersectionObserver(targets, (entries, observer) => {
         entries.forEach((e) => {
             if (e.isIntersecting) {
-                let pic = e.target.getElementsByTagName("picture")[0];
-                pic.getElementsByTagName("source")[0].srcset = pic.dataset.url!;
-                pic.getElementsByTagName("img")[0].src = pic.dataset.url!;
-                observer.unobserve(e.target);
+                let entry: Element | null = e.target;
+                for (let i = 0; i < 6; i++) {
+                    if (!entry) {
+                        break;
+                    }
+                    let pic = entry.getElementsByTagName("picture")[0];
+                    pic.getElementsByTagName("source")[0].srcset =
+                        pic.dataset.url!;
+                    pic.getElementsByTagName("img")[0].src = pic.dataset.url!;
+                    observer.unobserve(entry);
+                    entry = entry.nextElementSibling;
+                }
             }
         });
     });
