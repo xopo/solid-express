@@ -24,7 +24,7 @@ export const sanitizeDetails = (details: MediaDataType) => {
     } = details;
 
     return {
-        categories: categories.map((cat) => trim(escape(cat))),
+        categories: categories?.map((cat) => trim(escape(cat))) || [],
         channel_url: sanitizeUrl(channel_url),
         description: trim(escape(description)),
         duration_string: trim(escape(duration_string)),
@@ -40,6 +40,8 @@ export const sanitizeDetails = (details: MediaDataType) => {
         title: trim(escape(title)),
         upload_date: trim(escape(upload_date)),
         uploader: trim(escape(uploader)),
-        uploader_url: trim(escape(isURL(uploader_url) ? uploader_url : "")),
+        uploader_url:
+            uploader_url &&
+            trim(escape(isURL(uploader_url) ? uploader_url : "")),
     };
 };

@@ -7,6 +7,7 @@ import ActionMenu from "./player/action/ActionMenu";
 import { EntryData } from "../../context/appContext";
 import { getWebpLink } from "../common/helpers/media";
 import "./entry.scss";
+import { unescape } from "validator";
 
 type MediaEntryProps = {
     entry: EntryData;
@@ -90,13 +91,13 @@ export default function MediaEntry({
             </div>
             <div class="details">
                 <div class="name">
-                    <a href={entry.channel_url} target="__blank">
-                        <strong>{entry.uploader}</strong>
+                    <a href={decodeURI(entry.channel_url)} target="__blank">
+                        <strong>{unescape(entry.uploader)}</strong>
                     </a>
                 </div>
                 <div class="time">{date2String(entry.add_time, true)}</div>
             </div>
-            <p>{entry.description}</p>
+            <p>{unescape(entry.description)}</p>
         </li>
     );
 }

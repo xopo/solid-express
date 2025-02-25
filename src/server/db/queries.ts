@@ -356,12 +356,14 @@ export async function dbSetMediaTags(
     user_id: number,
     tags: number[],
 ) {
-    const insertTags = tags.map((tag) =>
-        getTagsMediaTable().insert({ media_id, user_id, tag_id: tag }),
-    );
-    await Promise.all(insertTags).catch((er) => {
-        throw new Error(er);
-    });
+    if (tags?.length) {
+        const insertTags = tags?.map((tag) =>
+            getTagsMediaTable().insert({ media_id, user_id, tag_id: tag }),
+        );
+        await Promise.all(insertTags).catch((er) => {
+            throw new Error(er);
+        });
+    }
 }
 
 // user media
