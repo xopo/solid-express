@@ -71,8 +71,14 @@ export function selectThumbnail(thumbs: ThumbType[], defaultThumbnail: string) {
 export type DownloadMedia = {};
 
 export const downloadMediaData = async (url: string) => {
-    const metadata = (await ytDLP.getVideoInfo(url)) as MediaDataType;
-    return metadata;
+    // const metadata = (await ytDLP.getVideoInfo(url)) as MediaDataType;
+    const metadata = await ytDLP.execPromise([
+        url,
+        "--no-cache-dir",
+        "--dump-json",
+        "--skip-download",
+    ]);
+    return JSON.parse(metadata) as MediaDataType;
 };
 
 // download and create a readable stream
